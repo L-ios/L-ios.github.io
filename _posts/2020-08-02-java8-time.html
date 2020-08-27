@@ -11,18 +11,55 @@ categories:
 - Scince"
 permalink: /java8-time-api
 ---
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org5c43455">1. Java8 日期处理</a>
+<ul>
+<li><a href="#org0b91526">1.1. Java8 java.time包</a></li>
+</ul>
+</li>
+<li><a href="#orgf432688">2. 相关示例</a>
+<ul>
+<li><a href="#org89e1d69">2.1. 根据System.currentTimeMillis() 建立时间</a></li>
+<li><a href="#org09b1e03">2.2. 获取今天的日期</a></li>
+<li><a href="#org0045e74">2.3. 获取年月日</a></li>
+<li><a href="#orgfa6ce18">2.4. 相关非规律周期检查</a></li>
+<li><a href="#org7fdee23">2.5. 获取当前时间</a></li>
+<li><a href="#org2382de4">2.6. 时区处理</a></li>
+<li><a href="#org10543b5">2.7. 利用LocalDate 检查是否为闰年</a></li>
+<li><a href="#org584ed90">2.8. 计算时间间隔</a>
+<ul>
+<li><a href="#org416d7a9">2.8.1. Period 计算以天单位的间隔</a></li>
+<li><a href="#orgecda2c2">2.8.2. Duration 计算秒等为单位的间隔</a></li>
+</ul>
+</li>
+<li><a href="#org4d0dd25">2.9. 时间格式化</a></li>
+<li><a href="#org180f337">2.10. 时间转换为字符串</a></li>
+<li><a href="#org0f46edc">2.11. 字符串转化为时间</a></li>
+<li><a href="#org5bed793">2.12. Date与Instant之间的转换</a>
+<ul>
+<li><a href="#org171e7a6">2.12.1. 与 SQL 日期类型对应关系</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
 
 <div id="outline-container-org5c43455" class="outline-2">
-<h2 id="org5c43455">Java8 日期处理</h2>
-<div class="outline-text-2" id="text-org5c43455">
+<h2 id="org5c43455"><span class="section-number-2">1</span> Java8 日期处理</h2>
+<div class="outline-text-2" id="text-1">
 <p>
 Java 8 推出了全新的日期处理API，也就是java.time包
 </p>
 </div>
 
 <div id="outline-container-org0b91526" class="outline-3">
-<h3 id="org0b91526">Java8 java.time包</h3>
-<div class="outline-text-3" id="text-org0b91526">
+<h3 id="org0b91526"><span class="section-number-3">1.1</span> Java8 java.time包</h3>
+<div class="outline-text-3" id="text-1-1">
 <p>
 <code>java.time</code> 包下的所有类都是不可变类型，而且线程安全，是基于ISO标准日历系统设计的
 </p>
@@ -95,14 +132,15 @@ Java 8 推出了全新的日期处理API，也就是java.time包
 </table>
 </div>
 </div>
-
-<div id="outline-container-orgf432688" class="outline-3">
-<h3 id="orgf432688">相关示例</h3>
-<div class="outline-text-3" id="text-orgf432688">
 </div>
-<ul class="org-ul">
-<li><a id="org89e1d69"></a>根据System.currentTimeMillis() 建立时间<br />
-<div class="outline-text-4" id="text-org89e1d69">
+
+<div id="outline-container-orgf432688" class="outline-2">
+<h2 id="orgf432688"><span class="section-number-2">2</span> 相关示例</h2>
+<div class="outline-text-2" id="text-2">
+</div>
+<div id="outline-container-org89e1d69" class="outline-3">
+<h3 id="org89e1d69"><span class="section-number-3">2.1</span> 根据System.currentTimeMillis() 建立时间</h3>
+<div class="outline-text-3" id="text-2-1">
 <div class="org-src-container">
 <pre class="src src-java">LocalDateTime.ofInstant<span style="color: #eaeaea;">(</span>Instant.<span style="color: #7aa6da;">ofEpochMilli</span><span style="color: #70c0b1;">(</span>System.<span style="color: #7aa6da;">currentTimeMillis</span><span style="color: #e7c547;">()</span><span style="color: #70c0b1;">)</span>, ZoneId.<span style="color: #7aa6da;">systemDefault</span><span style="color: #70c0b1;">()</span><span style="color: #eaeaea;">)</span>
 <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">2020-07-20T00:16:59.023</span>
@@ -112,20 +150,22 @@ Java 8 推出了全新的日期处理API，也就是java.time包
 </pre>
 </div>
 </div>
-</li>
+</div>
 
 
-<li><a id="org09b1e03"></a>获取今天的日期<br />
-<div class="outline-text-4" id="text-org09b1e03">
+<div id="outline-container-org09b1e03" class="outline-3">
+<h3 id="org09b1e03"><span class="section-number-3">2.2</span> 获取今天的日期</h3>
+<div class="outline-text-3" id="text-2-2">
 <div class="org-src-container">
 <pre class="src src-java">LocalDate.now<span style="color: #eaeaea;">()</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">2020-07-29</span>
 </pre>
 </div>
 </div>
-</li>
+</div>
 
-<li><a id="org0045e74"></a>获取年月日<br />
-<div class="outline-text-4" id="text-org0045e74">
+<div id="outline-container-org0045e74" class="outline-3">
+<h3 id="org0045e74"><span class="section-number-3">2.3</span> 获取年月日</h3>
+<div class="outline-text-3" id="text-2-3">
 <div class="org-src-container">
 <pre class="src src-java"><span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#24180;</span>
 LocalDate.now<span style="color: #eaeaea;">()</span>.getYear<span style="color: #eaeaea;">()</span>;  <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">2020</span>
@@ -136,10 +176,11 @@ LocalDate.now<span style="color: #eaeaea;">()</span>.getDayofMonth<span style="c
 </pre>
 </div>
 </div>
-</li>
+</div>
 
-<li><a id="orgfa6ce18"></a>相关非规律周期检查<br />
-<div class="outline-text-4" id="text-orgfa6ce18">
+<div id="outline-container-orgfa6ce18" class="outline-3">
+<h3 id="orgfa6ce18"><span class="section-number-3">2.4</span> 相关非规律周期检查</h3>
+<div class="outline-text-3" id="text-2-4">
 <p>
 非规律周期检查，指一年，一个月，这些用数字标识起来比较困难的，此处可以采用MonthDay Period
 </p>
@@ -156,10 +197,11 @@ LocalDate.now<span style="color: #eaeaea;">()</span>.getDayofMonth<span style="c
 </pre>
 </div>
 </div>
-</li>
+</div>
 
-<li><a id="org7fdee23"></a>获取当前时间<br />
-<div class="outline-text-4" id="text-org7fdee23">
+<div id="outline-container-org7fdee23" class="outline-3">
+<h3 id="org7fdee23"><span class="section-number-3">2.5</span> 获取当前时间</h3>
+<div class="outline-text-3" id="text-2-5">
 <div class="org-src-container">
 <pre class="src src-java"><span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#19981;&#21547;&#26085;&#26399;&#30340;&#24403;&#21069;&#26102;&#38388;</span>
 LocalTime.now<span style="color: #eaeaea;">()</span>;
@@ -173,10 +215,11 @@ LocalDateTime.now<span style="color: #eaeaea;">()</span>; <span style="color: #9
 </pre>
 </div>
 </div>
-</li>
+</div>
 
-<li><a id="org2382de4"></a>时区处理<br />
-<div class="outline-text-4" id="text-org2382de4">
+<div id="outline-container-org2382de4" class="outline-3">
+<h3 id="org2382de4"><span class="section-number-3">2.6</span> 时区处理</h3>
+<div class="outline-text-3" id="text-2-6">
 <div class="org-src-container">
 <pre class="src src-java"><span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#32654;&#22269;&#32445;&#32422;&#26102;&#21306;</span>
 <span style="color: #7aa6da;">ZoneId</span> <span style="color: #e7c547;">americaZone</span> = ZoneId.of<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"America/New_York"</span><span style="color: #eaeaea;">)</span>;
@@ -186,19 +229,25 @@ ZoneDateTime.of<span style="color: #eaeaea;">(</span>LocalDateTime.now<span styl
 </pre>
 </div>
 </div>
-</li>
+</div>
 
-<li><a id="org10543b5"></a>利用LocalDate 检查是否为闰年<br />
-<div class="outline-text-4" id="text-org10543b5">
+<div id="outline-container-org10543b5" class="outline-3">
+<h3 id="org10543b5"><span class="section-number-3">2.7</span> 利用LocalDate 检查是否为闰年</h3>
+<div class="outline-text-3" id="text-2-7">
 <div class="org-src-container">
 <pre class="src src-java">LocalDate.now<span style="color: #eaeaea;">()</span>.isLeapYear<span style="color: #eaeaea;">()</span>;
 </pre>
 </div>
 </div>
-</li>
+</div>
 
-<li><a id="orga7fa5a7"></a>利用Perriod计算时间间隔<br />
-<div class="outline-text-4" id="text-orga7fa5a7">
+<div id="outline-container-org584ed90" class="outline-3">
+<h3 id="org584ed90"><span class="section-number-3">2.8</span> 计算时间间隔</h3>
+<div class="outline-text-3" id="text-2-8">
+</div>
+<div id="outline-container-org416d7a9" class="outline-4">
+<h4 id="org416d7a9"><span class="section-number-4">2.8.1</span> Period 计算以天单位的间隔</h4>
+<div class="outline-text-4" id="text-2-8-1">
 <div class="org-src-container">
 <pre class="src src-java"><span style="color: #7aa6da;">Period</span> <span style="color: #e7c547;">period</span> = Period.between<span style="color: #eaeaea;">(</span>LocalDate.now<span style="color: #70c0b1;">()</span>, LocalDate.of<span style="color: #70c0b1;">(</span>2019, 3, 23<span style="color: #70c0b1;">)</span><span style="color: #eaeaea;">)</span>;
 
@@ -207,39 +256,56 @@ period.getMonths<span style="color: #eaeaea;">()</span>;
 </pre>
 </div>
 </div>
-</li>
+</div>
 
-<li><a id="org4d0dd25"></a>时间格式化<br />
-<div class="outline-text-4" id="text-org4d0dd25">
+<div id="outline-container-orgecda2c2" class="outline-4">
+<h4 id="orgecda2c2"><span class="section-number-4">2.8.2</span> Duration 计算秒等为单位的间隔</h4>
+<div class="outline-text-4" id="text-2-8-2">
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">var</span> <span style="color: #e7c547;">start</span> = Instant.now<span style="color: #eaeaea;">()</span>;
+<span style="color: #7aa6da;">var</span> <span style="color: #e7c547;">duration</span> = Duration.between<span style="color: #eaeaea;">(</span>start, Instant.now<span style="color: #70c0b1;">()</span><span style="color: #eaeaea;">)</span>;
+duration.getSeconds<span style="color: #eaeaea;">()</span>;          <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#38388;&#38548;&#30340;&#27627;&#31186;&#25968;</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org4d0dd25" class="outline-3">
+<h3 id="org4d0dd25"><span class="section-number-3">2.9</span> 时间格式化</h3>
+<div class="outline-text-3" id="text-2-9">
 <div class="org-src-container">
 <pre class="src src-java">LocalDate.parse<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"20180205"</span>, <span style="color: #7aa6da;">DateTimeFormatter</span>.<span style="color: #7aa6da;">BASIC_ISO_DATE</span><span style="color: #eaeaea;">)</span>; <span style="color: #969896; font-style: italic;">//</span><span style="color: #969896; font-style: italic;">2018-02-05</span>
 </pre>
 </div>
 </div>
-</li>
+</div>
 
-<li><a id="org180f337"></a>时间转换为字符串<br />
-<div class="outline-text-4" id="text-org180f337">
+<div id="outline-container-org180f337" class="outline-3">
+<h3 id="org180f337"><span class="section-number-3">2.10</span> 时间转换为字符串</h3>
+<div class="outline-text-3" id="text-2-10">
 <div class="org-src-container">
 <pre class="src src-java">LocalDateTime.now<span style="color: #eaeaea;">()</span>.format<span style="color: #eaeaea;">(</span>DateTimeFormatter.ofPattern<span style="color: #70c0b1;">(</span><span style="color: #70c0b1;">"yyyy/MM/dd HH:mm:ss"</span><span style="color: #70c0b1;">)</span><span style="color: #eaeaea;">)</span>;
 <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#36755;&#20986;&#20026; 2020/07/19 23:56:05</span>
 </pre>
 </div>
 </div>
-</li>
+</div>
 
-<li><a id="org0f46edc"></a>字符串转化为时间<br />
-<div class="outline-text-4" id="text-org0f46edc">
+<div id="outline-container-org0f46edc" class="outline-3">
+<h3 id="org0f46edc"><span class="section-number-3">2.11</span> 字符串转化为时间</h3>
+<div class="outline-text-3" id="text-2-11">
 <div class="org-src-container">
 <pre class="src src-java">LocalDateTime.parse<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"2020/07/19 12:23:34"</span>, DateTimeFormatter.ofPattern<span style="color: #70c0b1;">(</span><span style="color: #70c0b1;">"yyyy/MM/dd HH:mm:ss"</span><span style="color: #70c0b1;">)</span><span style="color: #eaeaea;">)</span>;
 <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">toString &#36755;&#20986;&#20026; 2020-07-19T12:23:34</span>
 </pre>
 </div>
 </div>
-</li>
+</div>
 
-<li><a id="org5bed793"></a>Date与Instant之间的转换<br />
-<div class="outline-text-4" id="text-org5bed793">
+<div id="outline-container-org5bed793" class="outline-3">
+<h3 id="org5bed793"><span class="section-number-3">2.12</span> Date与Instant之间的转换</h3>
+<div class="outline-text-3" id="text-2-12">
 <div class="org-src-container">
 <pre class="src src-java"><span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">Instant ==&gt; Date</span>
 <span style="color: #7aa6da;">Date</span> <span style="color: #e7c547;">now</span> = Date.from<span style="color: #eaeaea;">(</span>Instant.now<span style="color: #70c0b1;">()</span><span style="color: #eaeaea;">)</span>;
@@ -253,11 +319,11 @@ period.getMonths<span style="color: #eaeaea;">()</span>;
 Date 与 LocalDate LocalTime 以及LocalDateTime之间的互转都需要借助Instant
 </p>
 </div>
-</li>
 
 
-<li><a id="org171e7a6"></a>与 SQL 日期类型对应关系<br />
-<div class="outline-text-4" id="text-org171e7a6">
+<div id="outline-container-org171e7a6" class="outline-4">
+<h4 id="org171e7a6"><span class="section-number-4">2.12.1</span> 与 SQL 日期类型对应关系</h4>
+<div class="outline-text-4" id="text-2-12-1">
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -290,7 +356,6 @@ Date 与 LocalDate LocalTime 以及LocalDateTime之间的互转都需要借助In
 </tbody>
 </table>
 </div>
-</li>
-</ul>
+</div>
 </div>
 </div>

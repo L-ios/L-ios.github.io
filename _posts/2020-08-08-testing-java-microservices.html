@@ -22,12 +22,25 @@ permalink: /testing-java-microservices
 <li><a href="#org6e8b045">3. 微服务单元测试</a>
 <ul>
 <li><a href="#org0c09136">3.1. 测试替身（test double）</a></li>
-<li><a href="#org8763550">3.2. 相关测试工具</a></li>
+<li><a href="#org8763550">3.2. 相关测试工具</a>
+<ul>
+<li><a href="#org6c5993d">3.2.1. Junit</a></li>
+<li><a href="#org44c305c">3.2.2. AssertJ</a></li>
+<li><a href="#org745038d">3.2.3. Mockito</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#org9ec727c">4. 微服务组件测试</a>
 <ul>
-<li><a href="#orgc0456fa">4.1. Arquillian 测试框架</a></li>
+<li><a href="#orgc0456fa">4.1. Arquillian 测试框架</a>
+<ul>
+<li><a href="#org3264fb9">4.1.1. Arquillian 自动化生命周期</a></li>
+<li><a href="#org5b124d5">4.1.2. Arquillian的使用</a></li>
+<li><a href="#orgaff3906">4.1.3. ShrinkWrap 工具类</a></li>
+<li><a href="#org99e71ab">4.1.4. 测试领域组件</a></li>
+</ul>
+</li>
 <li><a href="#org1017c5d">4.2. 持久化组件 测试</a></li>
 </ul>
 </li>
@@ -35,7 +48,13 @@ permalink: /testing-java-microservices
 <ul>
 <li><a href="#orgffc6cf1">5.1. Arquillian 持久化扩展</a></li>
 <li><a href="#orgfed23e8">5.2. 描述式（注解）方法</a></li>
-<li><a href="#org5c3f6f4">5.3. 过程式方法</a></li>
+<li><a href="#org5c3f6f4">5.3. 过程式方法</a>
+<ul>
+<li><a href="#orga6faed8">5.3.1. 标准 RDBMS</a></li>
+<li><a href="#orgb61ec83">5.3.2. NoSQL 系统</a></li>
+<li><a href="#orgf3c2362">5.3.3. REST 服务</a></li>
+</ul>
+</li>
 <li><a href="#orga7375d0">5.4. 使用 Arquillian 序列的持久化测试</a></li>
 </ul>
 </li>
@@ -44,7 +63,18 @@ permalink: /testing-java-microservices
 <li><a href="#org4f863f1">6.1. 相关工具</a></li>
 </ul>
 </li>
-<li><a href="#org37b789e">7. 性能测试</a></li>
+<li><a href="#org37b789e">7. 性能测试</a>
+<ul>
+<li><a href="#orge29b10c">7.1. Lucust</a>
+<ul>
+<li><a href="#orgafe2067">7.1.1. 安装</a></li>
+<li><a href="#org02e2bd5">7.1.2. 简单使用</a></li>
+</ul>
+</li>
+<li><a href="#org2c56486">7.2. LoadRunner</a></li>
+<li><a href="#org67f1e05">7.3. Jmeter</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -116,8 +146,8 @@ TDD（测试驱动开发），先写测试，再编码，若编写单元测试�
 <h3 id="org8763550"><span class="section-number-3">3.2</span> 相关测试工具</h3>
 <div class="outline-text-3" id="text-3-2">
 </div>
-<ol class="org-ol">
-<li><a id="org6c5993d"></a>Junit<br />
+<div id="outline-container-org6c5993d" class="outline-4">
+<h4 id="org6c5993d"><span class="section-number-4">3.2.1</span> Junit</h4>
 <div class="outline-text-4" id="text-3-2-1">
 <p>
 Junit是一个Java单元测试框架，一个简单的JUnit测试如下
@@ -152,9 +182,10 @@ Junit是一个Java单元测试框架，一个简单的JUnit测试如下
 </pre>
 </div>
 </div>
-</li>
+</div>
 
-<li><a id="org44c305c"></a>AssertJ<br />
+<div id="outline-container-org44c305c" class="outline-4">
+<h4 id="org44c305c"><span class="section-number-4">3.2.2</span> AssertJ</h4>
 <div class="outline-text-4" id="text-3-2-2">
 <p>
 AssertJ 可以帮忙开发者以流式的方法在测试中使用断言，可以提供测试的可读性
@@ -183,9 +214,10 @@ assertThat<span style="color: #eaeaea;">(</span>games<span style="color: #eaeaea
 </pre>
 </div>
 </div>
-</li>
+</div>
 
-<li><a id="org745038d"></a>Mockito<br />
+<div id="outline-container-org745038d" class="outline-4">
+<h4 id="org745038d"><span class="section-number-4">3.2.3</span> Mockito</h4>
 <div class="outline-text-4" id="text-3-2-3">
 <p>
 Java 中常用的 mock 框架有 JMockit、EasyMock 和 Mockito ，Mockito 是使用较广的 mock 框架，可以利用简单的API 快速创建测试替身（mock对象）
@@ -237,8 +269,7 @@ verify<span style="color: #eaeaea;">(</span>response<span style="color: #eaeaea;
 </pre>
 </div>
 </div>
-</li>
-</ol>
+</div>
 </div>
 </div>
 
@@ -258,8 +289,8 @@ Arquillian 是一个可以用于几乎所有类型软件测试的框架。
 </p>
 </div>
 
-<ol class="org-ol">
-<li><a id="org3264fb9"></a>Arquillian 自动化生命周期<br />
+<div id="outline-container-org3264fb9" class="outline-4">
+<h4 id="org3264fb9"><span class="section-number-4">4.1.1</span> Arquillian 自动化生命周期</h4>
 <div class="outline-text-4" id="text-4-1-1">
 <ul class="org-ul">
 <li>启动或者链接到一个容器（Tomcat、Jetty）</li>
@@ -269,9 +300,10 @@ Arquillian 是一个可以用于几乎所有类型软件测试的框架。
 <li>卸载测试归档文件，并停止容器或断开容器链接</li>
 </ul>
 </div>
-</li>
+</div>
 
-<li><a id="org5b124d5"></a>Arquillian的使用<br />
+<div id="outline-container-org5b124d5" class="outline-4">
+<h4 id="org5b124d5"><span class="section-number-4">4.1.2</span> Arquillian的使用</h4>
 <div class="outline-text-4" id="text-4-1-2">
 <ul class="org-ul">
 <li>在 Junit 的基础上添加 arquillian-junit-container 和 arquillian 容器 依赖</li>
@@ -326,9 +358,10 @@ Arquillian 是一个可以用于几乎所有类型软件测试的框架。
 </div></li>
 </ul>
 </div>
-</li>
+</div>
 
-<li><a id="orgaff3906"></a>ShrinkWrap 工具类<br />
+<div id="outline-container-orgaff3906" class="outline-4">
+<h4 id="orgaff3906"><span class="section-number-4">4.1.3</span> ShrinkWrap 工具类</h4>
 <div class="outline-text-4" id="text-4-1-3">
 <p>
 ShrinkWrap 通过管理虚拟文件系统并导出 Java 归档文件的方式做到简单、快速、隔离性好的打包方式。ShrinkWrap 是一个用来创建运行测试的微部署的库
@@ -627,9 +660,10 @@ Spring Boot 应用测试采用 Spring + JUnit
 </div>
 </li>
 </ol>
-</li>
+</div>
 
-<li><a id="org99e71ab"></a>测试领域组件<br />
+<div id="outline-container-org99e71ab" class="outline-4">
+<h4 id="org99e71ab"><span class="section-number-4">4.1.4</span> 测试领域组件</h4>
 <div class="outline-text-4" id="text-4-1-4">
 <p>
 领域组件不好测试，一方面是因为它本身的复杂度，另一方面是每个应用都不一样。
@@ -641,8 +675,7 @@ Spring Boot 应用测试采用 Spring + JUnit
 <li>尽可能被测试的类是测试类中的唯一一个具体类</li>
 </ul>
 </div>
-</li>
-</ol>
+</div>
 </div>
 
 <div id="outline-container-org1017c5d" class="outline-3">
@@ -790,8 +823,8 @@ Arquillian 持久化扩展相关功能
 <h3 id="org5c3f6f4"><span class="section-number-3">5.3</span> 过程式方法</h3>
 <div class="outline-text-3" id="text-5-3">
 </div>
-<ol class="org-ol">
-<li><a id="orga6faed8"></a>标准 RDBMS<br />
+<div id="outline-container-orga6faed8" class="outline-4">
+<h4 id="orga6faed8"><span class="section-number-4">5.3.1</span> 标准 RDBMS</h4>
 <div class="outline-text-4" id="text-5-3-1">
 <p>
 书上说可以使用 <code>@DbUnit</code> 或者 <code>@Flyway</code> 注解实现数据后端，但是无奈找不到包
@@ -824,17 +857,19 @@ Arquillian 持久化扩展相关功能
 </pre>
 </div>
 </div>
-</li>
+</div>
 
-<li><a id="orgb61ec83"></a>NoSQL 系统<br />
+<div id="outline-container-orgb61ec83" class="outline-4">
+<h4 id="orgb61ec83"><span class="section-number-4">5.3.2</span> NoSQL 系统</h4>
 <div class="outline-text-4" id="text-5-3-2">
 <p>
 使用 <code>@MongoDb</code> 标记 <code>NoSqlPopulator</code> 将 MongoDB 作为数据后端
 </p>
 </div>
-</li>
+</div>
 
-<li><a id="orgf3c2362"></a>REST 服务<br />
+<div id="outline-container-orgf3c2362" class="outline-4">
+<h4 id="orgf3c2362"><span class="section-number-4">5.3.3</span> REST 服务</h4>
 <div class="outline-text-4" id="text-5-3-3">
 <p>
 可以使用 Postman 的 <a href="https://schema.getpostman.com/json/collection/v2.0.0/docs/index.html">Collection Format v2</a> 格式的数据集来生成服务不同操作的数据（可以使用post创建集合，再将其导出）
@@ -844,8 +879,7 @@ Arquillian 持久化扩展相关功能
 使用 <code>@Postman</code> 标记 <code>RestPopulator</code> 将 Postman 作为数据后端
 </p>
 </div>
-</li>
-</ol>
+</div>
 </div>
 
 <div id="outline-container-orga7375d0" class="outline-3">
@@ -887,9 +921,9 @@ Arquillian 持久化扩展相关功能
 <h2 id="org37b789e"><span class="section-number-2">7</span> 性能测试</h2>
 <div class="outline-text-2" id="text-7">
 </div>
-<ol class="org-ol">
-<li><a id="orge29b10c"></a>Lucust<br />
-<div class="outline-text-4" id="text-7-0-1">
+<div id="outline-container-orge29b10c" class="outline-3">
+<h3 id="orge29b10c"><span class="section-number-3">7.1</span> Lucust</h3>
+<div class="outline-text-3" id="text-7-1">
 <p>
 同样是性能测试工具，虽然官方这样来描述它 “An open source load testing tool.” 。但其它和前面两个工具有着较大的不同。相比前面两个工具，功能上要差上不少，但它也并非优点全无。
 </p>
@@ -898,9 +932,9 @@ Arquillian 持久化扩展相关功能
 <li>LoadRunner 和 Jmeter 这类采用进程和线程的测试工具，都很难在单机上模拟出较高的并发压力。Locust 的并发机制摒弃了进程和线程，采用协程（gevent）的机制。协程避免了系统级资源调度，由此可以大幅提高单机的并发能力。</li>
 </ul>
 </div>
-<ol class="org-ol">
-<li><a id="orgafe2067"></a>安装<br />
-<div class="outline-text-5" id="text-7-0-1-1">
+<div id="outline-container-orgafe2067" class="outline-4">
+<h4 id="orgafe2067"><span class="section-number-4">7.1.1</span> 安装</h4>
+<div class="outline-text-4" id="text-7-1-1">
 <ul class="org-ul">
 <li><p>
 通过 pip 安装
@@ -912,10 +946,11 @@ Arquillian 持久化扩展相关功能
 <li>通过 <a href="https://github.com/locustio/locust/">github</a> 获取源码安装</li>
 </ul>
 </div>
-</li>
+</div>
 
-<li><a id="org02e2bd5"></a>简单使用<br />
-<div class="outline-text-5" id="text-7-0-1-2">
+<div id="outline-container-org02e2bd5" class="outline-4">
+<h4 id="org02e2bd5"><span class="section-number-4">7.1.2</span> 简单使用</h4>
+<div class="outline-text-4" id="text-7-1-2">
 <ul class="org-ul">
 <li><p>
 编写 python 脚本
@@ -971,25 +1006,25 @@ locust -f load_test.py --host=https://www.baidu.com --headless -u 10 -r 2 -t 1m
 </ul></li>
 </ul>
 </div>
-</li>
-</ol>
-</li>
+</div>
+</div>
 
-<li><a id="org2c56486"></a>LoadRunner<br />
-<div class="outline-text-4" id="text-7-0-2">
+<div id="outline-container-org2c56486" class="outline-3">
+<h3 id="org2c56486"><span class="section-number-3">7.2</span> LoadRunner</h3>
+<div class="outline-text-3" id="text-7-2">
 <p>
 LoadRunner 是非常有名的商业性能测试工具，功能非常强大。使用也比较复杂，目前大多介绍性能测试的书籍都以该工具为基础，甚至有些书整本都在介绍 LoadRunner 的使用。
 </p>
 </div>
-</li>
-<li><a id="org67f1e05"></a>Jmeter<br />
-<div class="outline-text-4" id="text-7-0-3">
+</div>
+<div id="outline-container-org67f1e05" class="outline-3">
+<h3 id="org67f1e05"><span class="section-number-3">7.3</span> Jmeter</h3>
+<div class="outline-text-3" id="text-7-3">
 <p>
 同样是非常有名的开源性能测试工具，功能也很完善，在本书中介绍了它作为接口测试工具的使用。但实际上，它是一个标准的性能测试工具。关于Jmeter相关的资料也非常丰富，它的官方文档也很完善。
 </p>
 </div>
-</li>
-</ol>
+</div>
 </div>
 <div id="footnotes">
 <h2 class="footnotes">Footnotes: </h2>
