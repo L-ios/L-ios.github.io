@@ -1,0 +1,1004 @@
+---
+date: 2020-08-08 00:00
+author: L-ios
+layout: post
+title: Java 微服务测试（基于 Arquillian、Hoverfly、AssertJ、JUnit、Selenium、Mockito）笔记
+excerpt: 微服务测试方面的读书笔记
+tags: 
+- Java
+- "Micro
+- Service"
+categories: 
+- "Computer
+- Science"
+permalink: /testing-java-microservices
+---
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgff1f4e4">1. 微服务简介</a></li>
+<li><a href="#orge449b9d">2. 微服务测试准备</a></li>
+<li><a href="#org6e8b045">3. 微服务单元测试</a>
+<ul>
+<li><a href="#org0c09136">3.1. 测试替身（test double）</a></li>
+<li><a href="#org8763550">3.2. 相关测试工具</a></li>
+</ul>
+</li>
+<li><a href="#org9ec727c">4. 微服务组件测试</a>
+<ul>
+<li><a href="#orgc0456fa">4.1. Arquillian 测试框架</a></li>
+<li><a href="#org1017c5d">4.2. 持久化组件 测试</a></li>
+</ul>
+</li>
+<li><a href="#orgf73f9bb">5. 微服务集成测试</a>
+<ul>
+<li><a href="#orgffc6cf1">5.1. Arquillian 持久化扩展</a></li>
+<li><a href="#orgfed23e8">5.2. 描述式（注解）方法</a></li>
+<li><a href="#org5c3f6f4">5.3. 过程式方法</a></li>
+<li><a href="#orga7375d0">5.4. 使用 Arquillian 序列的持久化测试</a></li>
+</ul>
+</li>
+<li><a href="#org946c963">6. 契约测试</a>
+<ul>
+<li><a href="#org4f863f1">6.1. 相关工具</a></li>
+</ul>
+</li>
+<li><a href="#org37b789e">7. 性能测试</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgff1f4e4" class="outline-2">
+<h2 id="orgff1f4e4"><span class="section-number-2">1</span> 微服务简介</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+一个微服务是一个单体应用被切分成的一个更小的逻辑单元，微服务开发<sup><a id="fnr.1" class="footref" href="#fn.1">1</a></sup>可以是应用有针对性的进行扩容，使开发人员更为聚焦。通常微服务是通过网络隔离，
+</p>
+
+
+<p>
+微服务测试根据测试时是否和其他底层协作者隔离时，可以分为：
+</p>
+<dl class="org-dl">
+<dt>孤立型单元测试</dt><dd>用来测试那些无须存储状态以及无须协作的组件，主要关注一个单独的对象类的交互，常用于测试 资源组件、持久化组件、远程组件。
+以下情况可以优先考虑使用孤立单元测试
+<ul class="org-ul">
+<li>单元测试的协作者响应很慢的情况，例如 I/O 操作</li>
+<li>单元测试的协作者的逻辑经常变化</li>
+<li>正常情况下很难出现的极端情况，并对极端情况进行测试</li>
+</ul></dd>
+<dt>联合性单元测试</dt><dd>用来测试那些必须进行协作或者存储状态的组件</dd>
+</dl>
+</div>
+</div>
+
+<div id="outline-container-orge449b9d" class="outline-2">
+<h2 id="orge449b9d"><span class="section-number-2">2</span> 微服务测试准备</h2>
+<div class="outline-text-2" id="text-2">
+<ul class="org-ul">
+<li>code: <a href="https://manning-content.s3.amazonaws.com/download/2/314cd92-daa6-4aee-9a34-a2581e0af04e/testing-java-microservices-code.zip">java-microservices</a></li>
+<li>Java、环境变量、maven/gradle、IDE
+其中环境变量是向微服务应用传递参数的一种途径</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org6e8b045" class="outline-2">
+<h2 id="org6e8b045"><span class="section-number-2">3</span> 微服务单元测试</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+TDD（测试驱动开发），先写测试，再编码，若编写单元测试十分困难，则是需要被测试的代码需要重新设计
+</p>
+</div>
+<div id="outline-container-org0c09136" class="outline-3">
+<h3 id="org0c09136"><span class="section-number-3">3.1</span> 测试替身（test double）</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+测试替身是一种出于测试目的，利用一些简化的替身类来代替生产环境中的某些对象和协作者的技术，可以分为五大类
+</p>
+
+<dl class="org-dl">
+<dt>dummy</dt><dd>为满足某些调用参数的约定</dd>
+<dt>fake</dt><dd>fake 对象一般是协作者的一个实现，例如使用简单的内存数据库作为生产数据库的测试替身</dd>
+<dt>stub</dt><dd>在测试过程中，stub直接提供我们所定义的响应结果</dd>
+<dt>mock</dt><dd>mock 对象中预编码了预期的行为。期望的行为可能时返回一组离散的值或者抛出一个异常，mock仅仅做运行时行为的检查</dd>
+<dt>spy</dt><dd>spy 对象是 stub 的一种，它会记录调用期间的信息</dd>
+</dl>
+
+<p>
+通常使用 mock 和 spy 就可以了
+</p>
+</div>
+</div>
+
+<div id="outline-container-org8763550" class="outline-3">
+<h3 id="org8763550"><span class="section-number-3">3.2</span> 相关测试工具</h3>
+<div class="outline-text-3" id="text-3-2">
+</div>
+<ol class="org-ol">
+<li><a id="org6c5993d"></a>Junit<br />
+<div class="outline-text-4" id="text-3-2-1">
+<p>
+Junit是一个Java单元测试框架，一个简单的JUnit测试如下
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">class</span> <span style="color: #7aa6da;">MyTest</span> <span style="color: #eaeaea;">{</span>
+    <span style="color: #7aa6da;">@BeforeClass</span>
+    <span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">static</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">setUpClass</span><span style="color: #70c0b1;">()</span> <span style="color: #b9ca4a;">throws</span> <span style="color: #7aa6da;">Exception</span> <span style="color: #70c0b1;">{</span>
+        <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#23454;&#20363;&#25191;&#34892;&#21069;&#25191;&#34892;</span>
+    <span style="color: #70c0b1;">}</span>
+
+    <span style="color: #7aa6da;">@Before</span>
+    <span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">setUp</span><span style="color: #70c0b1;">()</span> <span style="color: #b9ca4a;">throws</span> <span style="color: #7aa6da;">Exception</span> <span style="color: #70c0b1;">{</span>
+        <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#27599;&#20010;&#27979;&#35797;&#25191;&#34892;&#21069;&#25191;&#34892;</span>
+    <span style="color: #70c0b1;">}</span>
+
+    <span style="color: #7aa6da;">@Test</span>
+    <span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">testMethod</span><span style="color: #70c0b1;">()</span> <span style="color: #70c0b1;">{</span>
+        assertEquals<span style="color: #e7c547;">(</span><span style="color: #70c0b1;">"Hello World"</span>, <span style="color: #70c0b1;">"hello World"</span><span style="color: #e7c547;">)</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">JUnit &#25552;&#20379;&#30340;&#26029;&#35328;</span>
+    <span style="color: #70c0b1;">}</span>
+
+    <span style="color: #7aa6da;">@After</span>
+    <span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">tearDown</span><span style="color: #70c0b1;">()</span> <span style="color: #b9ca4a;">throws</span> <span style="color: #7aa6da;">Exception</span> <span style="color: #70c0b1;">{</span>
+        <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#27599;&#20010;&#27979;&#35797;&#26041;&#27861;&#25191;&#34892;&#21518;</span>
+    <span style="color: #70c0b1;">}</span>
+
+    <span style="color: #7aa6da;">@AfterClass</span>
+    <span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">static</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">tearDownClass</span><span style="color: #70c0b1;">()</span> <span style="color: #b9ca4a;">throws</span> <span style="color: #7aa6da;">Exception</span> <span style="color: #70c0b1;">{</span>
+        <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#25152;&#26377;&#27979;&#35797;&#26041;&#27861;&#25191;&#34892;&#21518;</span>
+    <span style="color: #70c0b1;">}</span>
+<span style="color: #eaeaea;">}</span>
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org44c305c"></a>AssertJ<br />
+<div class="outline-text-4" id="text-3-2-2">
+<p>
+AssertJ 可以帮忙开发者以流式的方法在测试中使用断言，可以提供测试的可读性
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">JUnit &#22411;&#26029;&#35328;</span>
+assertEquals<span style="color: #eaeaea;">(</span><span style="color: #7aa6da;">var1</span>, <span style="color: #7aa6da;">var2</span><span style="color: #eaeaea;">)</span>;
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">AssertJ &#37325;&#20889;&#21518;</span>
+assertThat<span style="color: #eaeaea;">(</span>var1<span style="color: #eaeaea;">)</span>.isEqualTo<span style="color: #eaeaea;">(</span>var2<span style="color: #eaeaea;">)</span>;
+</pre>
+</div>
+<p>
+经过 AssertJ 重写后，可以看出 var2 是预期值，var1是结果返回值
+</p>
+
+<p>
+AssertJ 针对复杂校验
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">Junit</span>
+assertTrue<span style="color: #eaeaea;">(</span>games.contains<span style="color: #70c0b1;">(</span><span style="color: #70c0b1;">"zelda"</span><span style="color: #70c0b1;">)</span><span style="color: #eaeaea;">)</span>;
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">AssertJ</span>
+assertThat<span style="color: #eaeaea;">(</span>games<span style="color: #eaeaea;">)</span>.extracting<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"name"</span><span style="color: #eaeaea;">)</span>.contains<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"Zelda"</span><span style="color: #eaeaea;">)</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#20174;game&#20013;&#25214;&#20986; name &#23646;&#24615;</span>
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org745038d"></a>Mockito<br />
+<div class="outline-text-4" id="text-3-2-3">
+<p>
+Java 中常用的 mock 框架有 JMockit、EasyMock 和 Mockito ，Mockito 是使用较广的 mock 框架，可以利用简单的API 快速创建测试替身（mock对象）
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #b9ca4a;">import</span> <span style="color: #b9ca4a;">static</span> <span style="color: #7aa6da;">org</span>.<span style="color: #7aa6da;">mockito</span>.<span style="color: #7aa6da;">Mockito</span>.*;
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#36890;&#36807; mock &#26041;&#27861;&#21019;&#24314;&#20195;&#29702;&#31867;&#65292;&#22240;&#27492;&#21019;&#24314;&#30340;&#20195;&#29702;&#31867;&#19981;&#33021;&#26159;final</span>
+<span style="color: #7aa6da;">List</span> <span style="color: #e7c547;">mockedList</span> = mock<span style="color: #eaeaea;">(</span>List.<span style="color: #b9ca4a;">class</span><span style="color: #eaeaea;">)</span>;
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">mock&#23545;&#35937;&#21487;&#20197;&#20687;&#20854;&#20182;&#26041;&#27861;&#19968;&#26679;&#34987;&#35843;&#29992;</span>
+mockList.add<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"one"</span><span style="color: #eaeaea;">)</span>;
+mockList.clear<span style="color: #eaeaea;">()</span>;
+
+verify<span style="color: #eaeaea;">(</span>mockList<span style="color: #eaeaea;">)</span>.add<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"one"</span><span style="color: #eaeaea;">)</span>;    <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#39564;&#35777;mock&#30340;&#23545;&#35937;&#22312;&#27979;&#35797;&#25191;&#34892;&#30340;&#36807;&#31243;&#20013;&#20135;&#29983;&#20102;&#39044;&#26399;&#30340;&#20132;&#20114;</span>
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">verify(mockList, times(1)).add("one"); // &#21516;&#19978;&#19968;&#34892;</span>
+verify<span style="color: #eaeaea;">(</span>mockList<span style="color: #eaeaea;">)</span>.clear<span style="color: #eaeaea;">()</span>;
+
+<span style="color: #7aa6da;">List</span> <span style="color: #e7c547;">mockList2</span> = mock<span style="color: #eaeaea;">(</span>List.<span style="color: #b9ca4a;">class</span><span style="color: #eaeaea;">)</span>;
+when<span style="color: #eaeaea;">(</span>mockList2.get<span style="color: #70c0b1;">(</span>0<span style="color: #70c0b1;">)</span><span style="color: #eaeaea;">)</span>.thenReturn<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"first"</span><span style="color: #eaeaea;">)</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#26681;&#25454;&#21442;&#25968;&#20135;&#29983;&#20102;&#26041;&#27861;&#35843;&#29992;&#30340;&#32467;&#26524;</span>
+assertThat<span style="color: #eaeaea;">(</span>mockList2.get<span style="color: #70c0b1;">(</span>0<span style="color: #70c0b1;">)</span><span style="color: #eaeaea;">)</span>.isEqualTo<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"first"</span><span style="color: #eaeaea;">)</span>;
+</pre>
+</div>
+
+<p>
+当方法的返回类型为 void 时，并不意味着方法没有返回任何值
+</p>
+
+<p>
+<b>例如：</b> 可以通过 <code>AsyncResponse.resume()</code> 来返回， <code>AsyncResponse.resume()</code> 也可以用于返回异常
+针对这种情况，可以使用 ArgumentCaptor 将 不在控制范围内的对象进行捕获，并对特定的参数进行断言和校验
+</p>
+
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">@Captor</span>
+<span style="color: #b9ca4a;">private</span> <span style="color: #7aa6da;">ArgumentCaptor</span><span style="color: #eaeaea;">&lt;</span><span style="color: #7aa6da;">Response</span><span style="color: #eaeaea;">&gt;</span> <span style="color: #e7c547;">argumentCaptorResponse</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#36890;&#36807;&#27880;&#35299;&#21019;&#24314;&#23545;&#35937;</span>
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">Response resume&#25509;&#21463;&#21040;&#30340;&#21442;&#25968;&#26159;Response&#31867;&#22411;&#30340;&#65292;&#21487;&#20197;&#21442;&#32771;&#38656;&#35201;&#27979;&#35797;&#30340;&#19994;&#21153;&#20195;&#30721;</span>
+
+<span style="color: #7aa6da;">AsyncResponse</span> <span style="color: #e7c547;">response</span> = mock<span style="color: #eaeaea;">(</span>response<span style="color: #eaeaea;">)</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">AysncResponse &#23454;&#29616;&#20102; Response &#25509;&#21475;</span>
+service<span style="color: #eaeaea;">(</span>response, <span style="color: #70c0b1;">"xxx"</span><span style="color: #eaeaea;">)</span>;       <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#19994;&#21153;&#22788;&#29702;&#65292;&#24182;&#19988;&#20250;&#23558;&#36820;&#22238;&#32467;&#26524;&#25918;&#20837; AsyncResponse.resume &#20013;</span>
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#31561;&#24453;&#25191;&#34892;&#23436;&#25104;</span>
+
+verify<span style="color: #eaeaea;">(</span>response<span style="color: #eaeaea;">)</span>.resume<span style="color: #eaeaea;">(</span>argumentCaptorResponse.capture<span style="color: #70c0b1;">()</span><span style="color: #eaeaea;">)</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#23558;AsyncResponse.resume&#30340;&#20256;&#21442;&#36827;&#34892;&#25429;&#33719;</span>
+
+<span style="color: #7aa6da;">Response</span> <span style="color: #e7c547;">response</span> = argumentCaptorResponse.getValue<span style="color: #eaeaea;">()</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#25429;&#33719;&#30340;&#21442;&#25968;&#65292;&#24182;&#29992;&#20110;&#21518;&#32493;&#30340;&#26657;&#39564;</span>
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#21333;&#29420;&#39564;&#35777;&#24322;&#24120;</span>
+verify<span style="color: #eaeaea;">(</span>response<span style="color: #eaeaea;">)</span>.resume<span style="color: #eaeaea;">(</span>any<span style="color: #70c0b1;">(</span>IOException.<span style="color: #b9ca4a;">class</span><span style="color: #70c0b1;">)</span><span style="color: #eaeaea;">)</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">resume &#30340;&#21442;&#25968;&#26159;&#19968;&#20010; IOException &#23454;&#20363;</span>
+</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-org9ec727c" class="outline-2">
+<h2 id="org9ec727c"><span class="section-number-2">4</span> 微服务组件测试</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+组件测试主要是验证微服务组件内部以及组件之间的功能是否正常（排除面向外部访问的资源组件）
+</p>
+</div>
+
+<div id="outline-container-orgc0456fa" class="outline-3">
+<h3 id="orgc0456fa"><span class="section-number-3">4.1</span> Arquillian 测试框架</h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+Arquillian 是一个可以用于几乎所有类型软件测试的框架。
+</p>
+</div>
+
+<ol class="org-ol">
+<li><a id="org3264fb9"></a>Arquillian 自动化生命周期<br />
+<div class="outline-text-4" id="text-4-1-1">
+<ul class="org-ul">
+<li>启动或者链接到一个容器（Tomcat、Jetty）</li>
+<li>使用 ShrinkWrap 打包测试应用并部署到容器中</li>
+<li>在容器中运行测试</li>
+<li>捕获并报告测试结果</li>
+<li>卸载测试归档文件，并停止容器或断开容器链接</li>
+</ul>
+</div>
+</li>
+
+<li><a id="org5b124d5"></a>Arquillian的使用<br />
+<div class="outline-text-4" id="text-4-1-2">
+<ul class="org-ul">
+<li>在 Junit 的基础上添加 arquillian-junit-container 和 arquillian 容器 依赖</li>
+<li><p>
+增加 arquillian.xml 配置文件
+</p>
+<div class="org-src-container">
+<pre class="src src-xml">&lt;?<span style="color: #b9ca4a;">xml</span> <span style="color: #c397d8;">version="1.0" encoding="UTF-8"</span>?&gt;
+<span style="color: #969896; font-style: italic;">&lt;!--</span><span style="color: #969896; font-style: italic;">1</span><span style="color: #969896; font-style: italic;">--&gt;</span>
+&lt;<span style="color: #e78c45;">arquillian</span> <span style="color: #c397d8;">xmlns</span>=<span style="color: #70c0b1;">"http://jboss.org/schema/arquillian"</span>
+            <span style="color: #c397d8;">xmlns</span>:<span style="color: #e7c547;">xsi</span>=<span style="color: #70c0b1;">"http://www.w3.org/2001/XMLSchema-instance"</span>
+                        <span style="color: #c397d8;">xsi</span>:<span style="color: #e7c547;">schemaLocation</span>=<span style="color: #70c0b1;">"</span>
+<span style="color: #70c0b1;">          http://jboss.org/schema/arquillian</span>
+<span style="color: #70c0b1;">          http://jboss.org/schema/arquillian/arquillian_1_0.xsd"</span>&gt;
+
+  <span style="color: #969896; font-style: italic;">&lt;!--</span><span style="color: #969896; font-style: italic;">2</span><span style="color: #969896; font-style: italic;">--&gt;</span>
+  <span style="color: #969896; font-style: italic;">&lt;!-- </span><span style="color: #969896; font-style: italic;">Configuration to be used when the WidlFly remote profile is active </span><span style="color: #969896; font-style: italic;">--&gt;</span>
+  &lt;<span style="color: #e78c45;">container</span> <span style="color: #e7c547;">qualifier</span>=<span style="color: #70c0b1;">"widlfly-remote"</span>&gt;
+    &lt;<span style="color: #e78c45;">configuration</span>&gt;
+      &lt;<span style="color: #e78c45;">property</span> <span style="color: #e7c547;">name</span>=<span style="color: #70c0b1;">"javaVmArguments"</span>&gt;-DIGDB_API_KEY=dummy -DIGDB_HOST=http://127.0.0.1:8071&lt;/<span style="color: #e78c45;">property</span>&gt;
+      &lt;/<span style="color: #e78c45;">configuration</span>&gt;
+      &lt;/<span style="color: #e78c45;">container</span>&gt;
+
+      <span style="color: #969896; font-style: italic;">&lt;!--</span><span style="color: #969896; font-style: italic;">3</span><span style="color: #969896; font-style: italic;">--&gt;</span>
+      <span style="color: #969896; font-style: italic;">&lt;!-- </span><span style="color: #969896; font-style: italic;">Configuration to be used when the WildFly managed profile is active </span><span style="color: #969896; font-style: italic;">--&gt;</span>
+      &lt;<span style="color: #e78c45;">container</span> <span style="color: #e7c547;">qualifier</span>=<span style="color: #70c0b1;">"widlfly-managed"</span> <span style="color: #e7c547;">default</span>=<span style="color: #70c0b1;">"true"</span>&gt; <span style="color: #969896; font-style: italic;">&lt;!-- </span><span style="color: #969896; font-style: italic;">&#40664;&#35748;&#23481;&#22120; </span><span style="color: #969896; font-style: italic;">--&gt;</span>
+        &lt;<span style="color: #e78c45;">configuration</span>&gt;
+          <span style="color: #969896; font-style: italic;">&lt;!--</span><span style="color: #969896; font-style: italic;">4</span><span style="color: #969896; font-style: italic;">--&gt;</span>
+          &lt;<span style="color: #e78c45;">property</span> <span style="color: #e7c547;">name</span>=<span style="color: #70c0b1;">"javaVmArguments"</span>&gt;-DIGDB_API_KEY=dummyKey -DIGDB_HOST=http://127.0.0.1:8071&lt;/<span style="color: #e78c45;">property</span>&gt;
+          &lt;/<span style="color: #e78c45;">configuration</span>&gt;
+          &lt;/<span style="color: #e78c45;">container</span>&gt;
+&lt;/<span style="color: #e78c45;">arquillian</span>&gt;arquillian&gt;
+</pre>
+</div></li>
+<li>测试类上添加 <code>@RunWith(Arquillian.class)</code> 注解</li>
+<li><p>
+定义部署
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">@Deployment</span>
+<span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">static</span> <span style="color: #7aa6da;">WebArchive</span> <span style="color: #e78c45;">createDeployment</span><span style="color: #eaeaea;">()</span> <span style="color: #eaeaea;">{</span>
+    <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#36890;&#36807; ShrinkWrap&#26500;&#24314;&#19968;&#20010;&#24212;&#29992;&#24402;&#26723;&#25991;&#20214;</span>
+    <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">return ShrinkWrap.create(JavaArchive.class</span>
+    <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">return ShrinkWrap.create(EnterpriseArchive.class</span>
+    <span style="color: #b9ca4a;">return</span> ShrinkWrap.create<span style="color: #70c0b1;">(</span>WebArchive.<span style="color: #b9ca4a;">class</span>,
+                             ArquillianBasicTest.<span style="color: #b9ca4a;">class</span>.getName<span style="color: #e7c547;">()</span> + <span style="color: #70c0b1;">".war"</span><span style="color: #70c0b1;">)</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#26500;&#24314;&#24212;&#29992;&#24402;&#26723;&#25991;&#20214;</span>
+        .addClasses<span style="color: #70c0b1;">(</span>A.<span style="color: #b9ca4a;">class</span>, B.<span style="color: #b9ca4a;">class</span>, C.<span style="color: #b9ca4a;">class</span><span style="color: #70c0b1;">)</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#38656;&#35201;&#24402;&#26723;&#30340;&#25991;&#20214;</span>
+        .addAsResource<span style="color: #70c0b1;">(</span>&#8220;<span style="color: #70c0b1;">"test-persistent.xml"</span>, <span style="color: #70c0b1;">"META-INF/persistent.xml"</span><span style="color: #70c0b1;">)</span>       <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#28155;&#21152;jpa&#37197;&#32622;&#65292;&#20197;&#21450;&#23558;&#25991;&#20214;&#36827;&#34892;&#37325;&#21629;&#21517;</span>
+        .addAsWebInfResource<span style="color: #70c0b1;">(</span><span style="color: #7aa6da;">EmptyAsset</span>.INSTANCE, <span style="color: #70c0b1;">"bean.xml"</span><span style="color: #70c0b1;">)</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#28155;&#21152;beans.xml&#65292;&#29992;&#20110;&#20999;&#25442;CDI</span>
+<span style="color: #eaeaea;">}</span>
+</pre>
+</div></li>
+</ul>
+</div>
+</li>
+
+<li><a id="orgaff3906"></a>ShrinkWrap 工具类<br />
+<div class="outline-text-4" id="text-4-1-3">
+<p>
+ShrinkWrap 通过管理虚拟文件系统并导出 Java 归档文件的方式做到简单、快速、隔离性好的打包方式。ShrinkWrap 是一个用来创建运行测试的微部署的库
+</p>
+</div>
+
+<ol class="org-ol">
+<li><a id="org391a663"></a>使用步骤<br />
+<div class="outline-text-5" id="text-4-1-3-1">
+<ul class="org-ul">
+<li>利用 <code>ShrinkWrap.create()</code> 创建 Archive 文件</li>
+<li>向 Archive 文件中添加内容
+<ul class="org-ul">
+<li>添加类，或者包</li>
+<li>添加资源</li>
+<li>添加库和依赖</li>
+<li><p>
+利用 Maven 解析器
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #b9ca4a;">import</span> <span style="color: #7aa6da;">org</span>.<span style="color: #7aa6da;">jboss</span>.<span style="color: #7aa6da;">shrinkwrap</span>.<span style="color: #7aa6da;">resolver</span>.<span style="color: #7aa6da;">api</span>.<span style="color: #7aa6da;">maven</span>.<span style="color: #7aa6da;">Maven</span>;
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">.....</span>
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#23450;&#20041;maven &#21253;&#22352;&#26631;</span>
+<span style="color: #7aa6da;">String</span> <span style="color: #e7c547;">hibernate</span> = <span style="color: #70c0b1;">"org.hibernate:hibernate-core:5.2.3.Final"</span>;
+
+<span style="color: #969896; font-style: italic;">//</span><span style="color: #969896; font-style: italic;">&#26681;&#25454;&#22352;&#26631;&#33719;&#21462;&#25991;&#20214;</span>
+<span style="color: #7aa6da;">File</span><span style="color: #eaeaea;">[]</span> <span style="color: #e7c547;">files</span> = Maven.resolver.resolve<span style="color: #eaeaea;">(</span>hibernate<span style="color: #eaeaea;">)</span>
+    .withTransitivity<span style="color: #eaeaea;">()</span>
+    <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">.as(Files.class); // &#21516;&#19979;&#38754;&#19968;&#34892;</span>
+    .asFile<span style="color: #eaeaea;">()</span>;
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#23558;&#33719;&#21462;&#30340;&#25991;&#20214;&#28155;&#21152;&#21040; war &#24402;&#26723;&#25991;&#20214;&#20013;</span>
+<span style="color: #7aa6da;">WebArchive</span> <span style="color: #e7c547;">war</span> = ShrinkWrap.create<span style="color: #eaeaea;">(</span>WebArchive.<span style="color: #b9ca4a;">class</span>, <span style="color: #70c0b1;">"my.war"</span><span style="color: #eaeaea;">)</span>
+    .addAsLibraries<span style="color: #eaeaea;">(</span>files<span style="color: #eaeaea;">)</span>;
+</pre>
+</div>
+<p>
+pom 文件解析
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">File</span><span style="color: #eaeaea;">[]</span> <span style="color: #e7c547;">files</span> = Maven.resolver<span style="color: #eaeaea;">()</span>.loadPomFromFile<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"pom.xml"</span><span style="color: #eaeaea;">)</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#20174;&#25351;&#23450;pom.xml&#21152;&#36733;</span>
+    .importRuntimeAndTestDependencies<span style="color: #eaeaea;">()</span>                    <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#23548;&#20837;&#30456;&#20851;&#21253;</span>
+    .resolver<span style="color: #eaeaea;">()</span>.withTransitivity<span style="color: #eaeaea;">()</span>.asFile<span style="color: #eaeaea;">()</span>;               <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#35299;&#26512;&#25104;&#25991;&#20214;&#25968;&#32452;</span>
+</pre>
+</div></li>
+</ul></li>
+</ul>
+</div>
+</li>
+
+
+<li><a id="orga47b0dd"></a>Arquillian REST 客户端扩展<br />
+<div class="outline-text-5" id="text-4-1-3-2">
+<ul class="org-ul">
+<li>添加 arquillian-rest-client-api 和 arquillian-rest-client-impl 相关依赖</li>
+<li>测试方法添加 <code>@ArquillianResteasyresource</code> 注解的参数（REST接口实现类，接受请求的访问接入点）</li>
+</ul>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">@Test</span>
+<span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">testMethod</span><span style="color: #eaeaea;">(</span>
+                       <span style="color: #7aa6da;">@ArquillianResteasyResource</span> <span style="color: #b9ca4a;">final</span> <span style="color: #7aa6da;">RequestResource</span> <span style="color: #e7c547;">resource</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">REST &#36164;&#28304;&#25509;&#21475;</span>
+                       <span style="color: #eaeaea;">)</span> <span style="color: #eaeaea;">{</span>
+    Assert.assertNotNull<span style="color: #70c0b1;">(</span>resource<span style="color: #70c0b1;">)</span>;
+
+    <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#30452;&#25509;&#35843;&#29992;resource&#30456;&#20851;&#26041;&#27861;</span>
+<span style="color: #eaeaea;">}</span>
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="orgf04f3f9"></a>Wrap REST 扩展<br />
+<div class="outline-text-5" id="text-4-1-3-3">
+<p>
+Wrap REST 扩展可以在服务器端测试 RESTful 应用
+<b>原理：</b> 一个REST接入点被一个理解客户端/服务器端协议的servlet调用
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">@WarpTest</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#23558;&#27979;&#35797;&#35774;&#32622;&#25104;&#24320;&#21551;Wrap&#30340;&#27979;&#35797;</span>
+<span style="color: #7aa6da;">@RunWith</span><span style="color: #eaeaea;">(</span>Arquillian.<span style="color: #b9ca4a;">class</span><span style="color: #eaeaea;">)</span>
+<span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">class</span> <span style="color: #7aa6da;">CommentsWarpTest</span> <span style="color: #eaeaea;">{</span>
+
+    <span style="color: #7aa6da;">@BeforeClass</span>
+    <span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">static</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">beforeClass</span><span style="color: #70c0b1;">()</span> <span style="color: #70c0b1;">{</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#30830;&#20445;&#27979;&#35797;&#31867;&#30340;REST&#29615;&#22659;&#21487;&#29992;</span>
+        <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">initializes the rest easy client framework</span>
+        RegisterBuiltin.register<span style="color: #e7c547;">(</span>ResteasyProviderFactory
+                .getInstance<span style="color: #b9ca4a;">()</span><span style="color: #e7c547;">)</span>;
+    <span style="color: #70c0b1;">}</span>
+
+    <span style="color: #7aa6da;">@Deployment</span>
+    <span style="color: #7aa6da;">@OverProtocol</span><span style="color: #70c0b1;">(</span><span style="color: #70c0b1;">"Servlet 3.0"</span><span style="color: #70c0b1;">)</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#23450;&#20041;&#24213;&#23618;&#30340;&#21327;&#35758;</span>
+    <span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">static</span> <span style="color: #7aa6da;">WebArchive</span> <span style="color: #e78c45;">createDeployment</span><span style="color: #70c0b1;">()</span> <span style="color: #70c0b1;">{</span>
+        <span style="color: #b9ca4a;">final</span> <span style="color: #7aa6da;">WebArchive</span> <span style="color: #e7c547;">webArchive</span> = ShrinkWrap.create<span style="color: #e7c547;">(</span>WebArchive
+                .<span style="color: #b9ca4a;">class</span><span style="color: #e7c547;">)</span>.addPackage<span style="color: #e7c547;">(</span>CommentsResource.<span style="color: #b9ca4a;">class</span>
+                .getPackage<span style="color: #b9ca4a;">()</span><span style="color: #e7c547;">)</span>.addClass<span style="color: #e7c547;">(</span>MongoClientProvider.<span style="color: #b9ca4a;">class</span><span style="color: #e7c547;">)</span>
+                .addAsWebInfResource<span style="color: #e7c547;">(</span><span style="color: #70c0b1;">"test-resources.xml"</span>,
+                        <span style="color: #70c0b1;">"resources.xml"</span><span style="color: #e7c547;">)</span>.addAsWebInfResource
+                        <span style="color: #e7c547;">(</span><span style="color: #7aa6da;">EmptyAsset</span>.INSTANCE, <span style="color: #70c0b1;">"beans.xml"</span><span style="color: #e7c547;">)</span>
+                .addAsLibraries<span style="color: #e7c547;">(</span>Maven.resolver<span style="color: #b9ca4a;">()</span>.resolve<span style="color: #b9ca4a;">(</span><span style="color: #70c0b1;">"org"</span> +
+                        <span style="color: #70c0b1;">".mongodb:mongodb-driver:3.2.2"</span><span style="color: #b9ca4a;">)</span>
+                        .withTransitivity<span style="color: #b9ca4a;">()</span>.as<span style="color: #b9ca4a;">(</span>JavaArchive.<span style="color: #b9ca4a;">class</span><span style="color: #b9ca4a;">)</span><span style="color: #e7c547;">)</span>;
+
+        System.out.println<span style="color: #e7c547;">(</span><span style="color: #70c0b1;">"webArchive = "</span> + webArchive.toString
+                <span style="color: #b9ca4a;">(</span><span style="color: #7aa6da;">true</span><span style="color: #b9ca4a;">)</span><span style="color: #e7c547;">)</span>;
+
+        <span style="color: #b9ca4a;">return</span> webArchive;
+    <span style="color: #70c0b1;">}</span>
+
+    <span style="color: #b9ca4a;">private</span> <span style="color: #7aa6da;">CommentsResource</span> <span style="color: #e7c547;">resource</span>;
+
+    <span style="color: #7aa6da;">@ArquillianResource</span>
+    <span style="color: #b9ca4a;">private</span> <span style="color: #7aa6da;">URL</span> <span style="color: #e7c547;">contextPath</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#27880;&#20837;REST&#19978;&#19979;&#25991;&#36335;&#24452;,&#21487;&#20197;&#36890;&#36807;ShrinkWrap.create&#26102;&#25351;&#23450;</span>
+
+    <span style="color: #7aa6da;">@Before</span>
+    <span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">before</span><span style="color: #70c0b1;">()</span> <span style="color: #70c0b1;">{</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#37197;&#32622;&#35775;&#38382;&#26381;&#21153;&#22120;&#36164;&#28304;&#30340;REST&#23458;&#25143;&#31471;&#20195;&#29702;</span>
+        <span style="color: #b9ca4a;">final</span> <span style="color: #7aa6da;">ResteasyClient</span> <span style="color: #e7c547;">client</span> = <span style="color: #b9ca4a;">new</span> <span style="color: #7aa6da;">ResteasyClientBuilder</span><span style="color: #e7c547;">()</span>
+                .build<span style="color: #e7c547;">()</span>;
+        <span style="color: #b9ca4a;">final</span> <span style="color: #7aa6da;">ResteasyWebTarget</span> <span style="color: #e7c547;">target</span> = client.target<span style="color: #e7c547;">(</span>contextPath
+                .toExternalForm<span style="color: #b9ca4a;">()</span><span style="color: #e7c547;">)</span>;
+        resource = target.proxy<span style="color: #e7c547;">(</span>CommentsResource.<span style="color: #b9ca4a;">class</span><span style="color: #e7c547;">)</span>;
+    <span style="color: #70c0b1;">}</span>
+
+    <span style="color: #7aa6da;">@Test</span>
+    <span style="color: #7aa6da;">@RunAsClient</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#35753;&#20854;&#22788;&#20110;&#40657;&#30418;&#29615;&#22659;&#38548;&#31163;&#27979;&#35797;&#26041;&#27861;</span>
+    <span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">getCommentsOfGivenGame</span><span style="color: #70c0b1;">()</span> <span style="color: #70c0b1;">{</span>
+
+        Warp.initiate<span style="color: #e7c547;">(</span><span style="color: #b9ca4a;">()</span> -&gt; <span style="color: #b9ca4a;">{</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#21551;&#21160;REST&#35843;&#29992;&#24182;&#22686;&#21152;&#26816;&#26597;</span>
+
+            <span style="color: #b9ca4a;">final</span> <span style="color: #7aa6da;">Response</span> <span style="color: #e7c547;">commentsOfGivenGame</span> = resource
+                    .getCommentsOfGivenGame<span style="color: #7aa6da;">(</span>1<span style="color: #7aa6da;">)</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#35843;&#29992;&#26041;&#27861;&#65292;&#36827;&#34892;&#26816;&#26597;&#26041;&#27861;&#26159;&#21487;&#29992;&#30340;</span>
+            Assert.assertNotNull<span style="color: #7aa6da;">(</span>commentsOfGivenGame<span style="color: #7aa6da;">)</span>;
+
+        <span style="color: #b9ca4a;">}</span><span style="color: #e7c547;">)</span>.inspect<span style="color: #e7c547;">(</span><span style="color: #b9ca4a;">new</span> <span style="color: #7aa6da;">Inspection</span><span style="color: #b9ca4a;">()</span> <span style="color: #b9ca4a;">{</span>
+
+            <span style="color: #b9ca4a;">private</span> <span style="color: #b9ca4a;">static</span> <span style="color: #b9ca4a;">final</span> <span style="color: #7aa6da;">long</span> <span style="color: #e7c547;">serialVersionUID</span> = 1L;
+
+            <span style="color: #7aa6da;">@ArquillianResource</span>
+            <span style="color: #b9ca4a;">private</span> <span style="color: #7aa6da;">RestContext</span> <span style="color: #e7c547;">restContext</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#25552;&#20379;&#29992;&#26469;&#35775;&#38382;&#21327;&#35758;&#20449;&#24687;&#30340;REST&#35843;&#29992;&#19978;&#19979;&#25991;&#65292;&#26041;&#20415;&#21518;&#32493;&#26816;&#26597;</span>
+
+            <span style="color: #7aa6da;">@AfterServlet</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#26631;&#35760;&#24403;&#21069;&#26041;&#27861;&#38656;&#35201;&#22312;servlet&#35843;&#29992;&#21518;&#25191;&#34892;</span>
+            <span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">testGetCommentsOfGivenGame</span><span style="color: #7aa6da;">()</span> <span style="color: #7aa6da;">{</span>
+
+                assertEquals<span style="color: #eaeaea;">(</span><span style="color: #7aa6da;">HttpMethod</span>.GET, restContext
+                        .getHttpRequest<span style="color: #70c0b1;">()</span>.getMethod<span style="color: #70c0b1;">()</span><span style="color: #eaeaea;">)</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#23545;&#35843;&#29992;rest&#26041;&#27861;&#21518;&#30340;&#30456;&#20851;&#20869;&#23481;&#36827;&#34892;&#26816;&#27979;</span>
+                assertEquals<span style="color: #eaeaea;">(</span>200, restContext.getHttpResponse<span style="color: #70c0b1;">()</span>
+                        .getStatusCode<span style="color: #70c0b1;">()</span><span style="color: #eaeaea;">)</span>;
+                assertEquals<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"application/json"</span>, restContext
+                        .getHttpResponse<span style="color: #70c0b1;">()</span>.getContentType<span style="color: #70c0b1;">()</span><span style="color: #eaeaea;">)</span>;
+                assertNotNull<span style="color: #eaeaea;">(</span>restContext.getHttpResponse<span style="color: #70c0b1;">()</span>
+                        .getEntity<span style="color: #70c0b1;">()</span><span style="color: #eaeaea;">)</span>;
+            <span style="color: #7aa6da;">}</span>
+        <span style="color: #b9ca4a;">}</span><span style="color: #e7c547;">)</span>;
+    <span style="color: #70c0b1;">}</span>
+<span style="color: #eaeaea;">}</span>
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org7dec2f3"></a>Arquillian 测试 Spring 应用<br />
+<div class="outline-text-5" id="text-4-1-3-4">
+<p>
+Arquillian Spring 框架扩展工作方式 和 <code>@SpringJUnit4ClassRunner</code> 类似，但是保留类 Arquillian 测试环境上下文，可以减少样板代码。
+</p>
+
+<p>
+使用流程：
+</p>
+<ol class="org-ol">
+<li>添加 arquillian-service-integration-spring-inject 和 arquillian-service-integration-spring-javaconfig (Spring Javaconfig) 依赖</li>
+<li><p>
+添加相关注解
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">@RunWith</span><span style="color: #eaeaea;">(</span>Arquillian.<span style="color: #b9ca4a;">class</span><span style="color: #eaeaea;">)</span>
+<span style="color: #7aa6da;">@SpringAnnotationConfiguration</span><span style="color: #eaeaea;">(</span>classes =
+    <span style="color: #70c0b1;">{</span>XxxArquillianTest.<span style="color: #b9ca4a;">class</span>,   <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#24403;&#21069;&#27979;&#35797;&#31867;&#26159;Configuration&#65292;&#25152;&#20197;&#38656;&#35201;&#28155;&#21152;&#24403;&#21069;&#31867;</span>
+     aConfiguration.<span style="color: #b9ca4a;">class</span><span style="color: #70c0b1;">}</span><span style="color: #eaeaea;">)</span>
+<span style="color: #7aa6da;">@Configuration</span>
+<span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">class</span> <span style="color: #7aa6da;">XxxArquillianTest</span> <span style="color: #eaeaea;">{</span>
+<span style="color: #eaeaea;">}</span>
+</pre>
+</div></li>
+<li><p>
+创建归档文档
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">@Deployment</span>
+<span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">static</span> <span style="color: #7aa6da;">JavaArchive</span> <span style="color: #e78c45;">createTestArchive</span><span style="color: #eaeaea;">()</span> <span style="color: #eaeaea;">{</span>
+    <span style="color: #b9ca4a;">return</span> ShrinkWrap.create<span style="color: #70c0b1;">(</span>JavaArchive.<span style="color: #b9ca4a;">class</span>, <span style="color: #70c0b1;">"spring-test.jar"</span><span style="color: #70c0b1;">)</span>
+        .addClasses<span style="color: #70c0b1;">(</span>a.<span style="color: #b9ca4a;">class</span><span style="color: #70c0b1;">)</span>;
+<span style="color: #eaeaea;">}</span>
+</pre>
+</div></li>
+<li>添加 @Bean 和 @Autowired 等注解的使用</li>
+</ol>
+</div>
+</li>
+
+<li><a id="org7936fed"></a>测试 Spring Boot 应用<br />
+<div class="outline-text-5" id="text-4-1-3-5">
+<p>
+Spring Boot 应用测试采用 Spring + JUnit
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#20351;&#29992; Spring JUnit &#21021;&#22987;&#21270;&#21333;&#20803;&#27979;&#35797;</span>
+<span style="color: #7aa6da;">@RunWith</span><span style="color: #eaeaea;">(</span>SpringJUnit4ClassRunner.<span style="color: #b9ca4a;">class</span><span style="color: #eaeaea;">)</span>
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#23548;&#20837; @SpringBootApplication &#27880;&#35299;&#31867;</span>
+<span style="color: #7aa6da;">@SpringBootTest</span><span style="color: #eaeaea;">(</span>classes = <span style="color: #70c0b1;">{</span>Main.<span style="color: #b9ca4a;">class</span><span style="color: #70c0b1;">}</span><span style="color: #eaeaea;">)</span>
+<span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">class</span> <span style="color: #7aa6da;">YoutubeVideosTest</span> <span style="color: #eaeaea;">{</span>
+
+    <span style="color: #b9ca4a;">private</span> <span style="color: #b9ca4a;">static</span> <span style="color: #7aa6da;">RedisServer</span> <span style="color: #e7c547;">redisServer</span>;
+
+    <span style="color: #7aa6da;">@BeforeClass</span>
+    <span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">static</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">beforeClass</span><span style="color: #70c0b1;">()</span> <span style="color: #b9ca4a;">throws</span> <span style="color: #7aa6da;">Exception</span> <span style="color: #70c0b1;">{</span>
+        redisServer = <span style="color: #b9ca4a;">new</span> <span style="color: #7aa6da;">RedisServer</span><span style="color: #e7c547;">()</span>;
+        redisServer.start<span style="color: #e7c547;">()</span>;
+    <span style="color: #70c0b1;">}</span>
+
+    <span style="color: #7aa6da;">@AfterClass</span>
+    <span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">static</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">afterClass</span><span style="color: #70c0b1;">()</span> <span style="color: #70c0b1;">{</span>
+        redisServer.stop<span style="color: #e7c547;">()</span>;
+    <span style="color: #70c0b1;">}</span>
+
+    <span style="color: #969896; font-style: italic;">//    </span><span style="color: #969896; font-style: italic;">@Rule</span>
+    <span style="color: #969896; font-style: italic;">//    </span><span style="color: #969896; font-style: italic;">public RedisRule redisRule = new RedisRule</span>
+    <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">(newManagedRedisConfiguration().build());</span>
+
+    <span style="color: #7aa6da;">@Autowired</span>
+    <span style="color: #7aa6da;">YouTubeVideos</span> <span style="color: #e7c547;">youtubeVideos</span>;
+
+    <span style="color: #7aa6da;">@Test</span>
+    <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&lt;4&gt;</span>
+    <span style="color: #7aa6da;">@UsingDataSet</span><span style="color: #70c0b1;">(</span>loadStrategy = <span style="color: #7aa6da;">LoadStrategyEnum</span>.DELETE_ALL<span style="color: #70c0b1;">)</span>
+    <span style="color: #7aa6da;">@ShouldMatchDataSet</span><span style="color: #70c0b1;">(</span>location = <span style="color: #70c0b1;">"expected-videos.json"</span><span style="color: #70c0b1;">)</span>
+    <span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">shouldCacheGamesInRedis</span><span style="color: #70c0b1;">()</span> <span style="color: #70c0b1;">{</span>
+        youtubeVideos.createYouTubeLinks<span style="color: #e7c547;">(</span><span style="color: #70c0b1;">"123"</span>, Collections
+                .singletonList<span style="color: #b9ca4a;">(</span><span style="color: #70c0b1;">"https://www.youtube.com/embed/7889"</span><span style="color: #b9ca4a;">)</span><span style="color: #e7c547;">)</span>;
+    <span style="color: #70c0b1;">}</span>
+<span style="color: #eaeaea;">}</span>
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org37e9ded"></a>测试远程组件<br />
+<div class="outline-text-5" id="text-4-1-3-6">
+<p>
+测试远程组件，需要使用了 WireMock 库
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#20351;&#29992; WireMock &#21253;</span>
+
+<span style="color: #7aa6da;">@Before</span>
+<span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">before</span><span style="color: #eaeaea;">()</span> <span style="color: #eaeaea;">{</span>
+    <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#20250;&#36890;&#36807; IgdbGAteway &#32593;&#20851;&#26469;&#21457;&#36215;&#36828;&#31243;&#35843;&#29992;&#65292;&#24182;&#36827;&#34892;&#39564;&#35777;</span>
+    stubFor<span style="color: #70c0b1;">(</span>get<span style="color: #e7c547;">(</span>anyUrl<span style="color: #b9ca4a;">()</span><span style="color: #e7c547;">)</span>.withQueryParam<span style="color: #e7c547;">(</span><span style="color: #70c0b1;">"search"</span>, equalTo
+                                         <span style="color: #b9ca4a;">(</span><span style="color: #70c0b1;">"The"</span> + <span style="color: #70c0b1;">" Legend of Zelda: Breath of the Wild"</span><span style="color: #b9ca4a;">)</span><span style="color: #e7c547;">)</span>
+            .willReturn<span style="color: #e7c547;">(</span>aResponse<span style="color: #b9ca4a;">()</span>.withStatus<span style="color: #b9ca4a;">(</span>200<span style="color: #b9ca4a;">)</span>.withHeader
+                        <span style="color: #b9ca4a;">(</span><span style="color: #70c0b1;">"Content-Type"</span>, <span style="color: #70c0b1;">"application/json"</span><span style="color: #b9ca4a;">)</span>
+                        .withBody<span style="color: #b9ca4a;">(</span><span style="color: #70c0b1;">"[{</span><span style="color: #e7c547;">\</span><span style="color: #c397d8;">"</span><span style="color: #70c0b1;">id</span><span style="color: #e7c547;">\</span><span style="color: #c397d8;">"</span><span style="color: #70c0b1;">:7346,</span><span style="color: #e7c547;">\</span><span style="color: #c397d8;">"</span><span style="color: #70c0b1;">name</span><span style="color: #e7c547;">\</span><span style="color: #c397d8;">"</span><span style="color: #70c0b1;">:</span><span style="color: #e7c547;">\</span><span style="color: #c397d8;">"</span><span style="color: #70c0b1;">The "</span> +
+                                  <span style="color: #70c0b1;">"Legend of Zelda: Breath of the "</span> +
+                                  <span style="color: #70c0b1;">"Wild</span><span style="color: #e7c547;">\</span><span style="color: #c397d8;">"</span><span style="color: #70c0b1;">}]"</span><span style="color: #b9ca4a;">)</span><span style="color: #e7c547;">)</span><span style="color: #70c0b1;">)</span>;
+<span style="color: #eaeaea;">}</span>
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">8071 &#21516; arquillian.xml &#20013;&#30340;&#31471;&#21475;&#30456;&#21516;&#65292;&#24182;&#21578;&#35785; IgdbGateway &#20351;&#29992;&#27492;&#20195;&#29702;</span>
+<span style="color: #7aa6da;">@Rule</span>
+<span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">WireMockRule</span> <span style="color: #e7c547;">wireMockRule</span> = <span style="color: #b9ca4a;">new</span> <span style="color: #7aa6da;">WireMockRule</span><span style="color: #eaeaea;">(</span>8071<span style="color: #eaeaea;">)</span>;
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">ShrinkWrap &#36827;&#34892;&#25991;&#20214;&#25171;&#21253;</span>
+<span style="color: #7aa6da;">@Deployment</span>
+<span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">static</span> <span style="color: #7aa6da;">WebArchive</span> <span style="color: #e78c45;">createBaseDeployment</span><span style="color: #eaeaea;">(</span><span style="color: #b9ca4a;">final</span> <span style="color: #7aa6da;">String</span> <span style="color: #e7c547;">name</span><span style="color: #eaeaea;">)</span> <span style="color: #eaeaea;">{</span>
+    <span style="color: #b9ca4a;">return</span> ShrinkWrap.create<span style="color: #70c0b1;">(</span>WebArchive.<span style="color: #b9ca4a;">class</span>, name + <span style="color: #70c0b1;">".war"</span><span style="color: #70c0b1;">)</span>
+        .addClasses<span style="color: #70c0b1;">(</span>GamesResource.<span style="color: #b9ca4a;">class</span>,
+                    ExecutorServiceProducer.<span style="color: #b9ca4a;">class</span>, GamesService
+                    .<span style="color: #b9ca4a;">class</span>, IgdbGateway.<span style="color: #b9ca4a;">class</span>,
+                    SearchResult.<span style="color: #b9ca4a;">class</span>, Games.<span style="color: #b9ca4a;">class</span>, Game
+                    .<span style="color: #b9ca4a;">class</span>, ReleaseDate.<span style="color: #b9ca4a;">class</span><span style="color: #70c0b1;">)</span>
+        .addAsResource<span style="color: #70c0b1;">(</span><span style="color: #70c0b1;">"test-persistence.xml"</span>,
+                       <span style="color: #70c0b1;">"META-INF/persistence.xml"</span><span style="color: #70c0b1;">)</span>
+        .addAsWebInfResource<span style="color: #70c0b1;">(</span><span style="color: #7aa6da;">EmptyAsset</span>.INSTANCE, <span style="color: #70c0b1;">"beans"</span> +
+                             <span style="color: #70c0b1;">".xml"</span><span style="color: #70c0b1;">)</span>
+        <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#23548;&#20837; WireMock &#24211;&#65292;&#35299;&#20915; before &#20013;&#30340;&#20381;&#36182;&#38382;&#39064;</span>
+        .addAsLibrary<span style="color: #70c0b1;">(</span>Maven.resolver<span style="color: #e7c547;">()</span>.resolve<span style="color: #e7c547;">(</span><span style="color: #70c0b1;">"com.github"</span>
+                        + <span style="color: #70c0b1;">".tomakehurst:wiremock-standalone:2.2.1"</span><span style="color: #e7c547;">)</span>
+                        .withoutTransitivity<span style="color: #e7c547;">()</span>.asSingleFile<span style="color: #e7c547;">()</span><span style="color: #70c0b1;">)</span>;
+<span style="color: #eaeaea;">}</span>
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#27492;&#27979;&#35797;&#26041;&#27861;&#34987;WireMock&#20195;&#29702;&#21163;&#25345;</span>
+<span style="color: #7aa6da;">@Test</span>
+<span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">test</span><span style="color: #eaeaea;">()</span> <span style="color: #b9ca4a;">throws</span> <span style="color: #7aa6da;">Exception</span> <span style="color: #eaeaea;">{</span>
+<span style="color: #eaeaea;">}</span>
+</pre>
+</div>
+</div>
+</li>
+</ol>
+</li>
+
+<li><a id="org99e71ab"></a>测试领域组件<br />
+<div class="outline-text-4" id="text-4-1-4">
+<p>
+领域组件不好测试，一方面是因为它本身的复杂度，另一方面是每个应用都不一样。
+领域组件测试的基本原则：
+</p>
+<ul class="org-ul">
+<li>使用孤立单元测试</li>
+<li>不要跨越编辑</li>
+<li>尽可能被测试的类是测试类中的唯一一个具体类</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+
+<div id="outline-container-org1017c5d" class="outline-3">
+<h3 id="org1017c5d"><span class="section-number-3">4.2</span> 持久化组件 测试</h3>
+<div class="outline-text-3" id="text-4-2">
+<p>
+在持久化组件测试中，主要是对数据库引入的测试，针对持久层的测试
+</p>
+<dl class="org-dl">
+<dt>使用 mock EntityManager</dt><dd>完全绕过持久化</dd>
+<dt>(no term)</dt><dd><p>
+使用嵌入式数据
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">类型</th>
+<th scope="col" class="org-left">项目</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">SQL</td>
+<td class="org-left">HyperSql</td>
+</tr>
+
+<tr>
+<td class="org-left">SQL</td>
+<td class="org-left">H2</td>
+<td class="org-left">推荐的内存嵌入式数据库，可以和众多数据库兼容</td>
+</tr>
+
+<tr>
+<td class="org-left">SQL</td>
+<td class="org-left">Derby</td>
+</tr>
+
+<tr>
+<td class="org-left">NoSQL MongoDB</td>
+<td class="org-left">Fongo</td>
+</tr>
+
+<tr>
+<td class="org-left">NoSQL Neo4j</td>
+<td class="org-left">Neo4j</td>
+</tr>
+
+<tr>
+<td class="org-left">NoSQL Infinispan</td>
+<td class="org-left">Infinispan</td>
+</tr>
+</tbody>
+</table></dd>
+</dl>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgf73f9bb" class="outline-2">
+<h2 id="orgf73f9bb"><span class="section-number-2">5</span> 微服务集成测试</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+集成测试的作用：
+</p>
+<ul class="org-ul">
+<li>用于检验属于同一个子系统的多个模块（类）之间的交互，验证他们可以共同协作来完成预期的高层次功能。</li>
+<li>检查整个子系统调用路径上的行为是否正确</li>
+<li>每个模块对其他模块行为的预期检测</li>
+</ul>
+
+<p>
+在微服务架构下，集成测试可以用于测试任何一个子系统，通常关注于验证那些和外部组件通信的子系统（也是目标）
+</p>
+</div>
+
+<div id="outline-container-orgffc6cf1" class="outline-3">
+<h3 id="orgffc6cf1"><span class="section-number-3">5.1</span> Arquillian 持久化扩展</h3>
+<div class="outline-text-3" id="text-5-1">
+<p>
+当引入持久化后，对持久化相关的代码测试会产生如下的问题：
+</p>
+<ul class="org-ul">
+<li>因为数据存储的引入导致 独立的测试用例 被关联起来</li>
+<li>由于测试用例执行的顺序不同，有可能导致测试失败</li>
+<li>由于多次测试，或者数据存储已存在等，导致测试失败，所以需要在测试前后对数据进行处理</li>
+</ul>
+
+<p>
+Arquillian 持久化扩展相关功能
+</p>
+<ul class="org-ul">
+<li>每个测试都封装在独立的事务中运行</li>
+<li>使用 Dbunit 在类或方法上给数据库注入数据</li>
+<li>支持 SQL、JPA、NoSQL</li>
+<li>支持 XML、Excel、YAML、JSON等数据格式</li>
+<li>在每个测试方法执行前清理数据库</li>
+<li>直接使用自定义的 SQL文件</li>
+<li>使用一个已知的最终数据集与测试结束时的数据库状态进行比较，并支持忽略某些字段</li>
+<li>统一的过程式（DSL）或者描述式（注解）的注入数据的方法</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgfed23e8" class="outline-3">
+<h3 id="orgfed23e8"><span class="section-number-3">5.2</span> 描述式（注解）方法</h3>
+<div class="outline-text-3" id="text-5-2">
+<p>
+相关使用如下
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">@Test</span>
+<span style="color: #7aa6da;">@UsingDataSet</span><span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"datasets/games.yml"</span><span style="color: #eaeaea;">)</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#22312;&#25191;&#34892;&#26041;&#27861;&#21069;&#65292;&#22312;&#25968;&#25454;&#24211;&#29983;&#25104;&#25351;&#23450;&#30340;&#25968;&#25454;</span>
+<span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">shouldFindAllGames</span><span style="color: #eaeaea;">()</span> <span style="color: #eaeaea;">{}</span>
+
+<span style="color: #7aa6da;">@Test</span>
+<span style="color: #7aa6da;">@ApplyScriptBefore</span><span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"scripts/drop-referential-integrity.sql"</span><span style="color: #eaeaea;">)</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#22312;&#25191;&#34892;&#27979;&#35797;&#26041;&#27861;&#21069;&#24212;&#29992;&#25351;&#23450;&#30340;SQL&#33050;&#26412;</span>
+<span style="color: #7aa6da;">@ShouldMatchDataSet</span><span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"datasets/expected-games.yml"</span><span style="color: #eaeaea;">)</span>           <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#39564;&#35777;&#27979;&#35797;&#26041;&#27861;&#25191;&#34892;&#21518;&#25968;&#25454;&#29366;&#24577;&#26159;&#21542;&#21644;&#25991;&#20214;&#23450;&#20041;&#30340;&#19968;&#33268;</span>
+<span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">shouldInsertGames</span><span style="color: #eaeaea;">()</span> <span style="color: #eaeaea;">{}</span>
+</pre>
+</div>
+
+<p>
+相关的 *.yml 文件定义如下
+</p>
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #e7c547;">table1</span>:
+  - <span style="color: #e7c547;">column1</span>: value1
+    <span style="color: #e7c547;">column2</span>: value2
+  - <span style="color: #e7c547;">column1</span>: value3
+    <span style="color: #e7c547;">column2</span>: value4
+<span style="color: #e7c547;">table2</span>:
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org5c3f6f4" class="outline-3">
+<h3 id="org5c3f6f4"><span class="section-number-3">5.3</span> 过程式方法</h3>
+<div class="outline-text-3" id="text-5-3">
+</div>
+<ol class="org-ol">
+<li><a id="orga6faed8"></a>标准 RDBMS<br />
+<div class="outline-text-4" id="text-5-3-1">
+<p>
+书上说可以使用 <code>@DbUnit</code> 或者 <code>@Flyway</code> 注解实现数据后端，但是无奈找不到包
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">@RunWith</span><span style="color: #eaeaea;">(</span>Arquillian.<span style="color: #b9ca4a;">class</span><span style="color: #eaeaea;">)</span>
+<span style="color: #b9ca4a;">public</span> <span style="color: #b9ca4a;">class</span> <span style="color: #7aa6da;">DbUnitTest</span> <span style="color: #eaeaea;">{</span>
+
+    <span style="color: #7aa6da;">@DbUnit</span>                     <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#23558; DbUnit&#20316;&#20026;&#25968;&#25454;&#21518;&#31471;&#65292;&#19981;&#30693;&#36947; DbUnit&#30340;&#23454;&#29616;</span>
+    <span style="color: #7aa6da;">@ArquillianResource</span>
+    <span style="color: #7aa6da;">RdbmsPopulator</span> <span style="color: #e7c547;">rdbmsPopulator</span>;
+
+    <span style="color: #7aa6da;">@Test</span>
+    <span style="color: #b9ca4a;">public</span> <span style="color: #7aa6da;">void</span> <span style="color: #e78c45;">should_find_all_person</span><span style="color: #70c0b1;">()</span> <span style="color: #70c0b1;">{</span>
+        rdbmsPopulator.forUri<span style="color: #e7c547;">(</span>URI.create<span style="color: #b9ca4a;">(</span><span style="color: #70c0b1;">"jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"</span><span style="color: #b9ca4a;">)</span><span style="color: #e7c547;">)</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#37197;&#32622;&#36830;&#25509;</span>
+                .withDriver<span style="color: #e7c547;">(</span>Driver.<span style="color: #b9ca4a;">class</span><span style="color: #e7c547;">)</span>
+                .withUsername<span style="color: #e7c547;">(</span><span style="color: #70c0b1;">"sa"</span><span style="color: #e7c547;">)</span>
+                .withPassword<span style="color: #e7c547;">(</span><span style="color: #70c0b1;">""</span><span style="color: #e7c547;">)</span>
+                .usingDataSet<span style="color: #e7c547;">(</span><span style="color: #70c0b1;">"test.json"</span><span style="color: #e7c547;">)</span>
+                .execute<span style="color: #e7c547;">()</span>;     <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#23558; test.json &#25552;&#20379;&#30340;&#25968;&#25454;&#25554;&#20837;&#21040;&#25968;&#25454;&#24211;&#20013;</span>
+
+        rdbmsPopulator.forUri<span style="color: #e7c547;">(</span>URI.create<span style="color: #b9ca4a;">(</span><span style="color: #70c0b1;">"jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"</span><span style="color: #b9ca4a;">)</span><span style="color: #e7c547;">)</span>
+                .withDriver<span style="color: #e7c547;">(</span>Driver.<span style="color: #b9ca4a;">class</span><span style="color: #e7c547;">)</span>
+                .withUsername<span style="color: #e7c547;">(</span><span style="color: #70c0b1;">"sa"</span><span style="color: #e7c547;">)</span>
+                .withPassword<span style="color: #e7c547;">(</span><span style="color: #70c0b1;">""</span><span style="color: #e7c547;">)</span>
+                .usingDataSet<span style="color: #e7c547;">(</span><span style="color: #70c0b1;">"test.json"</span><span style="color: #e7c547;">)</span>
+                .clean<span style="color: #e7c547;">()</span>;       <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#28165;&#29702;&#25968;&#25454;</span>
+    <span style="color: #70c0b1;">}</span>
+<span style="color: #eaeaea;">}</span>
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="orgb61ec83"></a>NoSQL 系统<br />
+<div class="outline-text-4" id="text-5-3-2">
+<p>
+使用 <code>@MongoDb</code> 标记 <code>NoSqlPopulator</code> 将 MongoDB 作为数据后端
+</p>
+</div>
+</li>
+
+<li><a id="orgf3c2362"></a>REST 服务<br />
+<div class="outline-text-4" id="text-5-3-3">
+<p>
+可以使用 Postman 的 <a href="https://schema.getpostman.com/json/collection/v2.0.0/docs/index.html">Collection Format v2</a> 格式的数据集来生成服务不同操作的数据（可以使用post创建集合，再将其导出）
+</p>
+
+<p>
+使用 <code>@Postman</code> 标记 <code>RestPopulator</code> 将 Postman 作为数据后端
+</p>
+</div>
+</li>
+</ol>
+</div>
+
+<div id="outline-container-orga7375d0" class="outline-3">
+<h3 id="orga7375d0"><span class="section-number-3">5.4</span> 使用 Arquillian 序列的持久化测试</h3>
+<div class="outline-text-3" id="text-5-4">
+<p>
+使用 <code>@InSequence</code> 标记测试执行的顺序
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org946c963" class="outline-2">
+<h2 id="org946c963"><span class="section-number-2">6</span> 契约测试</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+契约是客户端服务和生产者服务之间的一组约定。契约定义每个消费者和生产者之间的交互规则
+</p>
+
+<dl class="org-dl">
+<dt>生产者契约</dt><dd>由生产者的团队来负责契约，消费者智能查看契约（生产者定义契约内容，消费者智能适配）</dd>
+<dt>消费者契约</dt><dd>消费者团队定义来需要的契约并提供给生产者实现（消费者定义契约内容）</dd>
+</dl>
+</div>
+
+<div id="outline-container-org4f863f1" class="outline-3">
+<h3 id="org4f863f1"><span class="section-number-3">6.1</span> 相关工具</h3>
+<div class="outline-text-3" id="text-6-1">
+<dl class="org-dl">
+<dt>Spring Cloud Contract</dt><dd>使用 Groovy 的测试框架</dd>
+<dt>Pact</dt><dd>一系列支持消费者契约测试的测试框架</dd>
+<dt>Pacto</dt><dd>一个用于开发消费者驱动和文档驱动契约的框架</dd>
+<dt>Hoverfly</dt><dd>模拟 HTTP 和 HTTPS 服务（利用代理，存在请求键值等数据）</dd>
+</dl>
+</div>
+</div>
+</div>
+<div id="outline-container-org37b789e" class="outline-2">
+<h2 id="org37b789e"><span class="section-number-2">7</span> 性能测试</h2>
+<div class="outline-text-2" id="text-7">
+</div>
+<ol class="org-ol">
+<li><a id="orge29b10c"></a>Lucust<br />
+<div class="outline-text-4" id="text-7-0-1">
+<p>
+同样是性能测试工具，虽然官方这样来描述它 “An open source load testing tool.” 。但其它和前面两个工具有着较大的不同。相比前面两个工具，功能上要差上不少，但它也并非优点全无。
+</p>
+<ul class="org-ul">
+<li>Locust 完全基本 Python 编程语言，采用 Pure Python 描述测试脚本，并且 HTTP 请求完全基于 Requests 库。除了 HTTP/HTTPS 协议，Locust 也可以测试其它协议的系统，只需要采用Python调用对应的库进行请求描述即可。</li>
+<li>LoadRunner 和 Jmeter 这类采用进程和线程的测试工具，都很难在单机上模拟出较高的并发压力。Locust 的并发机制摒弃了进程和线程，采用协程（gevent）的机制。协程避免了系统级资源调度，由此可以大幅提高单机的并发能力。</li>
+</ul>
+</div>
+<ol class="org-ol">
+<li><a id="orgafe2067"></a>安装<br />
+<div class="outline-text-5" id="text-7-0-1-1">
+<ul class="org-ul">
+<li><p>
+通过 pip 安装
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">pip install locust
+</pre>
+</div></li>
+<li>通过 <a href="https://github.com/locustio/locust/">github</a> 获取源码安装</li>
+</ul>
+</div>
+</li>
+
+<li><a id="org02e2bd5"></a>简单使用<br />
+<div class="outline-text-5" id="text-7-0-1-2">
+<ul class="org-ul">
+<li><p>
+编写 python 脚本
+</p>
+<div class="org-src-container">
+<pre class="src src-python"><span style="color: #b9ca4a;">from</span> locust <span style="color: #b9ca4a;">import</span> HttpUser, TaskSet, task
+
+
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#23450;&#20041;&#29992;&#25143;&#34892;&#20026;</span>
+<span style="color: #b9ca4a;">class</span> <span style="color: #7aa6da;">UserBehavior</span><span style="color: #eaeaea;">(</span>TaskSet<span style="color: #eaeaea;">)</span>:
+
+    <span style="color: #7aa6da;">@task</span>  <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#34920;&#31034;&#24403;&#21069;&#26041;&#27861;&#20026;&#19968;&#20010;&#20107;&#21153;</span>
+    <span style="color: #b9ca4a;">def</span> <span style="color: #e78c45;">baidu_index</span><span style="color: #eaeaea;">(</span><span style="color: #b9ca4a;">self</span><span style="color: #eaeaea;">)</span>:  <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#23450;&#20041;&#29992;&#25143;&#34892;&#20026;</span>
+        <span style="color: #b9ca4a;">self</span>.client.get<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"/"</span><span style="color: #eaeaea;">)</span>
+
+
+<span style="color: #b9ca4a;">class</span> <span style="color: #7aa6da;">WebsiteUser</span><span style="color: #eaeaea;">(</span>HttpUser<span style="color: #eaeaea;">)</span>:
+    <span style="color: #e7c547;">tasks</span> = <span style="color: #eaeaea;">[</span>UserBehavior<span style="color: #eaeaea;">]</span>  <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#25351;&#21521;&#23450;&#20041;&#30340;&#29992;&#25143;&#34892;&#20026;</span>
+    <span style="color: #e7c547;">min_wait</span> = 3000
+    <span style="color: #e7c547;">max_wait</span> = 6000
+</pre>
+</div></li>
+<li>执行脚本
+<ul class="org-ul">
+<li><p>
+网页模式
+</p>
+<div class="org-src-container">
+<pre class="src src-sh"><span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">-f &#25351;&#23450;&#33050;&#26412;</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">--host &#25351;&#23450;&#20027;&#26426;</span>
+$ locust -f load_test.py --host=https://www.baidu.com
+<span style="color: #eaeaea;">[</span>2020-08-09 22:19:47,020<span style="color: #eaeaea;">]</span> fedora32/INFO/locust.main: Starting web interface at http://:8089
+<span style="color: #eaeaea;">[</span>2020-08-09 22:19:47,024<span style="color: #eaeaea;">]</span> fedora32/INFO/locust.main: Starting Locust 1.1.1
+</pre>
+</div>
+<ul class="org-ul">
+<li>打开浏览器 <a href="http://localhost:8089">Locust 网络监控器，默认8089端口</a></li>
+<li>di</li>
+</ul></li>
+<li><p>
+非网页模式
+</p>
+<div class="org-src-container">
+<pre class="src src-sh"><span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">-f &#25351;&#23450;&#33050;&#26412;</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">--host &#25351;&#23450;&#20027;&#26426;</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">--headless &#19981;&#21551;&#21160; Web &#30028;&#38754;</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">-u &#34394;&#25311;&#29992;&#25143;&#25968;</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">-r &#27599;&#31186;&#21551;&#21160;&#34394;&#25311;&#29992;&#25143;&#25968;</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">-t &#36816;&#34892;&#26102;&#38388;</span>
+locust -f load_test.py --host=https://www.baidu.com --headless -u 10 -r 2 -t 1m
+</pre>
+</div></li>
+</ul></li>
+</ul>
+</div>
+</li>
+</ol>
+</li>
+
+<li><a id="org2c56486"></a>LoadRunner<br />
+<div class="outline-text-4" id="text-7-0-2">
+<p>
+LoadRunner 是非常有名的商业性能测试工具，功能非常强大。使用也比较复杂，目前大多介绍性能测试的书籍都以该工具为基础，甚至有些书整本都在介绍 LoadRunner 的使用。
+</p>
+</div>
+</li>
+<li><a id="org67f1e05"></a>Jmeter<br />
+<div class="outline-text-4" id="text-7-0-3">
+<p>
+同样是非常有名的开源性能测试工具，功能也很完善，在本书中介绍了它作为接口测试工具的使用。但实际上，它是一个标准的性能测试工具。关于Jmeter相关的资料也非常丰富，它的官方文档也很完善。
+</p>
+</div>
+</li>
+</ol>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1">1</a></sup> <div class="footpara"><p class="footpara">
+<a href="https://microprofile.io">MicroProfile</a> 作者推荐
+</p></div></div>
+
+
+</div>
+</div>

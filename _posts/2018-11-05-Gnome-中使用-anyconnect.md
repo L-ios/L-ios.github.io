@@ -2,10 +2,13 @@
 layout: post
 title: Gnome 中使用 anyconnect
 subtitle: 在 Gnome NetworkManager 中使用 anyconnect
-tags: [Linux, Gnome, Vpn, anyconnect]
+tags: [Linux]
 comments: true
 date: 2018-11-05 22:17:08
+permalink: /gnome-anyconnect
 ---
+
+# Gnome 中使用 anyconnect
 
 Linux 有对应的Cisco Anyconnect官方的客户端，不好找，而且还在连接成功后自动的断掉，为了方便使用，我们使用gnome自带的NetworkManger进行管理
 1. 安装相应的软件包 `network-manager-openconnect` 和 `network-manager-openconnect-gnome`
