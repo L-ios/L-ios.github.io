@@ -1,0 +1,296 @@
+---
+date: 2020-08-02 15:49
+author: L-ios
+layout: post
+title: Java8 时间
+excerpt: Java8 时间API的使用
+tags: 
+- Java
+categories: 
+- "Computer
+- Scince"
+permalink: /java8-time-api
+---
+
+<div id="outline-container-org5c43455" class="outline-2">
+<h2 id="org5c43455">Java8 日期处理</h2>
+<div class="outline-text-2" id="text-org5c43455">
+<p>
+Java 8 推出了全新的日期处理API，也就是java.time包
+</p>
+</div>
+
+<div id="outline-container-org0b91526" class="outline-3">
+<h3 id="org0b91526">Java8 java.time包</h3>
+<div class="outline-text-3" id="text-org0b91526">
+<p>
+<code>java.time</code> 包下的所有类都是不可变类型，而且线程安全，是基于ISO标准日历系统设计的
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">类</th>
+<th scope="col" class="org-left">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Instant</td>
+<td class="org-left">时间戳</td>
+</tr>
+
+<tr>
+<td class="org-left">Duration</td>
+<td class="org-left">时间间隔，时间差</td>
+</tr>
+
+<tr>
+<td class="org-left">LocalDate</td>
+<td class="org-left">日期</td>
+</tr>
+
+<tr>
+<td class="org-left">LocalTime</td>
+<td class="org-left">时间</td>
+</tr>
+
+<tr>
+<td class="org-left">LocalDateTime</td>
+<td class="org-left">LocalDate 和 LocalTime集合体</td>
+</tr>
+
+<tr>
+<td class="org-left">Period</td>
+<td class="org-left">时间段</td>
+</tr>
+
+<tr>
+<td class="org-left">ZoneOffset</td>
+<td class="org-left">时区，时区偏移</td>
+</tr>
+
+<tr>
+<td class="org-left">Clock</td>
+<td class="org-left">抽象类，主要适用于定义规则</td>
+</tr>
+
+<tr>
+<td class="org-left">DateTimeFormatter</td>
+<td class="org-left">用于时间格式化</td>
+</tr>
+
+<tr>
+<td class="org-left">MonthDay</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-orgf432688" class="outline-3">
+<h3 id="orgf432688">相关示例</h3>
+<div class="outline-text-3" id="text-orgf432688">
+</div>
+<ul class="org-ul">
+<li><a id="org89e1d69"></a>根据System.currentTimeMillis() 建立时间<br />
+<div class="outline-text-4" id="text-org89e1d69">
+<div class="org-src-container">
+<pre class="src src-java">LocalDateTime.ofInstant<span style="color: #eaeaea;">(</span>Instant.<span style="color: #7aa6da;">ofEpochMilli</span><span style="color: #70c0b1;">(</span>System.<span style="color: #7aa6da;">currentTimeMillis</span><span style="color: #e7c547;">()</span><span style="color: #70c0b1;">)</span>, ZoneId.<span style="color: #7aa6da;">systemDefault</span><span style="color: #70c0b1;">()</span><span style="color: #eaeaea;">)</span>
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">2020-07-20T00:16:59.023</span>
+
+<span style="color: #b9ca4a;">new</span> <span style="color: #7aa6da;">Date</span><span style="color: #eaeaea;">(</span>System.currentTimeMillis<span style="color: #70c0b1;">()</span><span style="color: #eaeaea;">)</span>;
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">Mon Jul 20 00:17:11 CST 2020</span>
+</pre>
+</div>
+</div>
+</li>
+
+
+<li><a id="org09b1e03"></a>获取今天的日期<br />
+<div class="outline-text-4" id="text-org09b1e03">
+<div class="org-src-container">
+<pre class="src src-java">LocalDate.now<span style="color: #eaeaea;">()</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">2020-07-29</span>
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org0045e74"></a>获取年月日<br />
+<div class="outline-text-4" id="text-org0045e74">
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#24180;</span>
+LocalDate.now<span style="color: #eaeaea;">()</span>.getYear<span style="color: #eaeaea;">()</span>;  <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">2020</span>
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#26376;</span>
+LocalDate.now<span style="color: #eaeaea;">()</span>.getMonthValue<span style="color: #eaeaea;">()</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">7</span>
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#26085;</span>
+LocalDate.now<span style="color: #eaeaea;">()</span>.getDayofMonth<span style="color: #eaeaea;">()</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">19</span>
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="orgfa6ce18"></a>相关非规律周期检查<br />
+<div class="outline-text-4" id="text-orgfa6ce18">
+<p>
+非规律周期检查，指一年，一个月，这些用数字标识起来比较困难的，此处可以采用MonthDay Period
+</p>
+
+<p>
+例如检查生日
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">MonthDay</span> <span style="color: #e7c547;">birthday</span> = MonthDay.of<span style="color: #eaeaea;">(</span>2, 29<span style="color: #eaeaea;">)</span>;
+
+<span style="color: #b9ca4a;">if</span> <span style="color: #eaeaea;">(</span>MonthDay.from<span style="color: #70c0b1;">(</span>LocalDate.now<span style="color: #e7c547;">()</span><span style="color: #70c0b1;">)</span><span style="color: #eaeaea;">)</span> <span style="color: #eaeaea;">{</span>
+    System.out.println<span style="color: #70c0b1;">(</span><span style="color: #70c0b1;">"&#20170;&#22825;&#26159;&#20320;&#30340;&#29983;&#26085;"</span><span style="color: #70c0b1;">)</span>;
+<span style="color: #eaeaea;">}</span>
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org7fdee23"></a>获取当前时间<br />
+<div class="outline-text-4" id="text-org7fdee23">
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#19981;&#21547;&#26085;&#26399;&#30340;&#24403;&#21069;&#26102;&#38388;</span>
+LocalTime.now<span style="color: #eaeaea;">()</span>;
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#19977;&#23567;&#26102;&#21518;&#30340;&#26102;&#38388;</span>
+LocalTime.now<span style="color: #eaeaea;">()</span>.plusHours<span style="color: #eaeaea;">(</span>3<span style="color: #eaeaea;">)</span>;
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#21547;&#26085;&#26399;&#30340;&#24403;&#21069;&#26102;&#38388;</span>
+Instant.now<span style="color: #eaeaea;">()</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#30340;&#26159;&#26684;&#26519;&#26102;&#21306;&#30340;&#26102;&#38388;&#65292;</span>
+LocalDateTime.now<span style="color: #eaeaea;">()</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#21516; new Date()</span>
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org2382de4"></a>时区处理<br />
+<div class="outline-text-4" id="text-org2382de4">
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#32654;&#22269;&#32445;&#32422;&#26102;&#21306;</span>
+<span style="color: #7aa6da;">ZoneId</span> <span style="color: #e7c547;">americaZone</span> = ZoneId.of<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"America/New_York"</span><span style="color: #eaeaea;">)</span>;
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#32654;&#22269;&#32445;&#32422;&#26102;&#38388;</span>
+ZoneDateTime.of<span style="color: #eaeaea;">(</span>LocalDateTime.now<span style="color: #70c0b1;">()</span>, americaZone<span style="color: #eaeaea;">)</span>;
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org10543b5"></a>利用LocalDate 检查是否为闰年<br />
+<div class="outline-text-4" id="text-org10543b5">
+<div class="org-src-container">
+<pre class="src src-java">LocalDate.now<span style="color: #eaeaea;">()</span>.isLeapYear<span style="color: #eaeaea;">()</span>;
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="orga7fa5a7"></a>利用Perriod计算时间间隔<br />
+<div class="outline-text-4" id="text-orga7fa5a7">
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">Period</span> <span style="color: #e7c547;">period</span> = Period.between<span style="color: #eaeaea;">(</span>LocalDate.now<span style="color: #70c0b1;">()</span>, LocalDate.of<span style="color: #70c0b1;">(</span>2019, 3, 23<span style="color: #70c0b1;">)</span><span style="color: #eaeaea;">)</span>;
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#38388;&#38548;&#20102;&#20960;&#20010;&#26376;</span>
+period.getMonths<span style="color: #eaeaea;">()</span>;
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org4d0dd25"></a>时间格式化<br />
+<div class="outline-text-4" id="text-org4d0dd25">
+<div class="org-src-container">
+<pre class="src src-java">LocalDate.parse<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"20180205"</span>, <span style="color: #7aa6da;">DateTimeFormatter</span>.<span style="color: #7aa6da;">BASIC_ISO_DATE</span><span style="color: #eaeaea;">)</span>; <span style="color: #969896; font-style: italic;">//</span><span style="color: #969896; font-style: italic;">2018-02-05</span>
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org180f337"></a>时间转换为字符串<br />
+<div class="outline-text-4" id="text-org180f337">
+<div class="org-src-container">
+<pre class="src src-java">LocalDateTime.now<span style="color: #eaeaea;">()</span>.format<span style="color: #eaeaea;">(</span>DateTimeFormatter.ofPattern<span style="color: #70c0b1;">(</span><span style="color: #70c0b1;">"yyyy/MM/dd HH:mm:ss"</span><span style="color: #70c0b1;">)</span><span style="color: #eaeaea;">)</span>;
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#36755;&#20986;&#20026; 2020/07/19 23:56:05</span>
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org0f46edc"></a>字符串转化为时间<br />
+<div class="outline-text-4" id="text-org0f46edc">
+<div class="org-src-container">
+<pre class="src src-java">LocalDateTime.parse<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"2020/07/19 12:23:34"</span>, DateTimeFormatter.ofPattern<span style="color: #70c0b1;">(</span><span style="color: #70c0b1;">"yyyy/MM/dd HH:mm:ss"</span><span style="color: #70c0b1;">)</span><span style="color: #eaeaea;">)</span>;
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">toString &#36755;&#20986;&#20026; 2020-07-19T12:23:34</span>
+</pre>
+</div>
+</div>
+</li>
+
+<li><a id="org5bed793"></a>Date与Instant之间的转换<br />
+<div class="outline-text-4" id="text-org5bed793">
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">Instant ==&gt; Date</span>
+<span style="color: #7aa6da;">Date</span> <span style="color: #e7c547;">now</span> = Date.from<span style="color: #eaeaea;">(</span>Instant.now<span style="color: #70c0b1;">()</span><span style="color: #eaeaea;">)</span>;
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">Date ==&gt; Instant</span>
+<span style="color: #b9ca4a;">new</span> <span style="color: #7aa6da;">Date</span><span style="color: #eaeaea;">()</span>.toInstant<span style="color: #eaeaea;">()</span>;
+</pre>
+</div>
+
+<p>
+Date 与 LocalDate LocalTime 以及LocalDateTime之间的互转都需要借助Instant
+</p>
+</div>
+</li>
+
+
+<li><a id="org171e7a6"></a>与 SQL 日期类型对应关系<br />
+<div class="outline-text-4" id="text-org171e7a6">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">SQL</th>
+<th scope="col" class="org-left">JAVA8</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">DATE</td>
+<td class="org-left">LocalDate</td>
+</tr>
+
+<tr>
+<td class="org-left">TIME</td>
+<td class="org-left">LocalTime</td>
+</tr>
+
+<tr>
+<td class="org-left">TIMESTAP</td>
+<td class="org-left">LocalDateTime</td>
+</tr>
+</tbody>
+</table>
+</div>
+</li>
+</ul>
+</div>
+</div>
