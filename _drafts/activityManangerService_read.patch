@@ -1,0 +1,755 @@
+
+project frameworks/base/
+diff --git a/core/java/android/app/Activity.java b/core/java/android/app/Activity.java
+index 9568897..0653fe0 100644
+--- a/core/java/android/app/Activity.java
++++ b/core/java/android/app/Activity.java
+@@ -3739,9 +3739,9 @@ public class Activity extends ContextThemeWrapper
+      * @throws android.content.ActivityNotFoundException
+      *
+      * @see #startActivity
+-     */
++     */ // #=> requestCode = -1;
+     public void startActivityForResult(Intent intent, int requestCode, @Nullable Bundle options) {
+-        if (mParent == null) {
++        if (mParent == null) {  // #=> 从桌面启动，所以mParent不为null
+             Instrumentation.ActivityResult ar =
+                 mInstrumentation.execStartActivity(
+                     this, mMainThread.getApplicationThread(), mToken, this,
+@@ -4296,7 +4296,7 @@ public class Activity extends ContextThemeWrapper
+             mInstrumentation.execStartActivity(
+                 this, mMainThread.getApplicationThread(), mToken, child,
+                 intent, requestCode, options);
+-        if (ar != null) {
++        if (ar != null) { // #=> 猜想ar = null
+             mMainThread.sendActivityResult(
+                 mToken, child.mEmbeddedID, requestCode,
+                 ar.getResultCode(), ar.getResultData());
+diff --git a/core/java/android/app/ActivityManagerNative.java b/core/java/android/app/ActivityManagerNative.java
+index 8c57169..dde237b 100644
+--- a/core/java/android/app/ActivityManagerNative.java
++++ b/core/java/android/app/ActivityManagerNative.java
+@@ -2405,7 +2405,7 @@ class ActivityManagerProxy implements IActivityManager
+             int startFlags, ProfilerInfo profilerInfo, Bundle options) throws RemoteException {
+         Parcel data = Parcel.obtain();
+         Parcel reply = Parcel.obtain();
+-        data.writeInterfaceToken(IActivityManager.descriptor);
++        data.writeInterfaceToken(IActivityManager.descriptor);  // #=> "android.app.IActivityManager"
+         data.writeStrongBinder(caller != null ? caller.asBinder() : null);
+         data.writeString(callingPackage);
+         intent.writeToParcel(data, 0);
+diff --git a/core/java/android/app/ActivityThread.java b/core/java/android/app/ActivityThread.java
+index 8353d54..5234376 100644
+--- a/core/java/android/app/ActivityThread.java
++++ b/core/java/android/app/ActivityThread.java
+@@ -2164,6 +2164,7 @@ public final class ActivityThread {
+     }
+ 
+     private void sendMessage(int what, Object obj) {
++        // #=> sendMessage(H.SEND_RESULT, res);
+         sendMessage(what, obj, 0, 0, false);
+     }
+ 
+diff --git a/core/java/android/app/Instrumentation.java b/core/java/android/app/Instrumentation.java
+index ad2b61f..792b8f9 100644
+--- a/core/java/android/app/Instrumentation.java
++++ b/core/java/android/app/Instrumentation.java
+@@ -632,7 +632,7 @@ public class Instrumentation {
+      * @see #addMonitor(ActivityMonitor) 
+      * @see #checkMonitorHit 
+      */
+-    public ActivityMonitor addMonitor(
++    public ActivityMonitor addMonitor(  // #=> no used
+         IntentFilter filter, ActivityResult result, boolean block) {
+         ActivityMonitor am = new ActivityMonitor(filter, result, block);
+         addMonitor(am);
+@@ -1472,17 +1472,18 @@ public class Instrumentation {
+      * {@hide}
+      */
+     public ActivityResult execStartActivity(
+-            Context who, IBinder contextThread, IBinder token, Activity target,
+-            Intent intent, int requestCode, Bundle options) {
++            Context who, IBinder contextThread, IBinder token, Activity target, // #=> who = target
++            Intent intent, int requestCode, Bundle options) {   // #=>intent, -1, null
+         IApplicationThread whoThread = (IApplicationThread) contextThread;
+-        if (mActivityMonitors != null) {
++        Log.e(TAG + "lingyang", "execStartActivity, mActivityMonitors" + mActivityMonitors);
++        if (mActivityMonitors != null) {    // #=> false
+             synchronized (mSync) {
+-                final int N = mActivityMonitors.size();
++                final int N = mActivityMonitors.size();  //#=> 在桌面启动应用中，mActivityMonitors.size = 0;
+                 for (int i=0; i<N; i++) {
+                     final ActivityMonitor am = mActivityMonitors.get(i);
+                     if (am.match(who, null, intent)) {
+                         am.mHits++;
+-                        if (am.isBlocking()) {
++                        if (am.isBlocking()) {  // #=> always true;
+                             return requestCode >= 0 ? am.getResult() : null;
+                         }
+                         break;
+@@ -1491,7 +1492,7 @@ public class Instrumentation {
+             }
+         }
+         try {
+-            intent.migrateExtraStreamToClipData();
++            intent.migrateExtraStreamToClipData();  // #=> do nothing, and return false. startActivity in launcher.
+             intent.prepareToLeaveProcess();
+             int result = ActivityManagerNative.getDefault()
+                 .startActivity(whoThread, who.getBasePackageName(), intent,
+diff --git a/core/java/android/os/Process.java b/core/java/android/os/Process.java
+index 21a9904..ebe3144 100644
+--- a/core/java/android/os/Process.java
++++ b/core/java/android/os/Process.java
+@@ -390,6 +390,7 @@ public class Process {
+             BufferedWriter zygoteWriter = null;
+             final LocalSocket zygoteSocket = new LocalSocket();
+ 
++            // #=> socketAddress = zygote;
+             try {
+                 zygoteSocket.connect(new LocalSocketAddress(socketAddress,
+                         LocalSocketAddress.Namespace.RESERVED));
+@@ -547,6 +548,8 @@ public class Process {
+              * the child or -1 on failure, followed by boolean to
+              * indicate whether a wrapper process was used.
+              */
++            Log.e(LOG_TAG + "lingyang", "zygoteSendArgsAndGetResult, args: " + args.toString());
++            Log.e("Process" + "lingyang", "parsedArgs.remianingArgs: \n" + Log.getStackTraceString(new Throwable("lingyang")));
+             final BufferedWriter writer = zygoteState.writer;
+             final DataInputStream inputStream = zygoteState.inputStream;
+ 
+diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
+index 838686a..56a102f 100644
+--- a/core/java/android/provider/Settings.java
++++ b/core/java/android/provider/Settings.java
+@@ -4105,6 +4105,24 @@ public final class Settings {
+                 "accessibility_display_daltonizer";
+ 
+         /**
++         * Setting that specifies whether display color to protective eye is
++         * enabled.
++         *
++         * @hide
++         */
++        public static final String NIGHT_SHIFT_ENABLED =
++                "night_shift_enabled";
++
++        /**
++         * Integer property that specifies the type of color to protective
++         * eye int value. Valid values are defined in AccessibilityManager.
++         *
++         * @hide
++         */
++        public static final String NIGHT_SHIFT_VALUE =
++                "night_shift_value";
++
++        /**
+          * The timout for considering a press to be a long press in milliseconds.
+          * @hide
+          */
+diff --git a/core/java/com/android/internal/os/Zygote.java b/core/java/com/android/internal/os/Zygote.java
+index cca340c..6dfb45f 100644
+--- a/core/java/com/android/internal/os/Zygote.java
++++ b/core/java/com/android/internal/os/Zygote.java
+@@ -86,13 +86,13 @@ public final class Zygote {
+      */
+     public static int forkAndSpecialize(int uid, int gid, int[] gids, int debugFlags,
+           int[][] rlimits, int mountExternal, String seInfo, String niceName, int[] fdsToClose,
+-          String instructionSet, String appDataDir) {
++          String instructionSet, String appDataDir, int which, String name) {
+         long startTime = SystemClock.elapsedRealtime();
+         VM_HOOKS.preFork();
+         checkTime(startTime, "Zygote.preFork");
+         int pid = nativeForkAndSpecialize(
+                   uid, gid, gids, debugFlags, rlimits, mountExternal, seInfo, niceName, fdsToClose,
+-                  instructionSet, appDataDir);
++                  instructionSet, appDataDir, which, name);
+         checkTime(startTime, "Zygote.nativeForkAndSpecialize");
+         VM_HOOKS.postForkCommon();
+         checkTime(startTime, "Zygote.postForkCommon");
+@@ -101,7 +101,7 @@ public final class Zygote {
+ 
+     native private static int nativeForkAndSpecialize(int uid, int gid, int[] gids,int debugFlags,
+           int[][] rlimits, int mountExternal, String seInfo, String niceName, int[] fdsToClose,
+-          String instructionSet, String appDataDir);
++          String instructionSet, String appDataDir, int which, String name);
+ 
+     /**
+      * Temporary hack: check time since start time and log if over a fixed threshold.
+diff --git a/core/java/com/android/internal/os/ZygoteConnection.java b/core/java/com/android/internal/os/ZygoteConnection.java
+index 4548221..ac9163d 100644
+--- a/core/java/com/android/internal/os/ZygoteConnection.java
++++ b/core/java/com/android/internal/os/ZygoteConnection.java
+@@ -36,6 +36,7 @@ import java.io.InputStreamReader;
+ import java.io.PrintStream;
+ import java.nio.charset.StandardCharsets;
+ import java.util.ArrayList;
++import java.util.Arrays;
+ import libcore.io.IoUtils;
+ import android.os.SystemClock;
+ import android.util.Slog;
+@@ -243,10 +244,22 @@ class ZygoteConnection {
+             fd = null;
+ 
+             checkTime(startTime, "zygoteConnection.runOnce: preForkAndSpecialize");
+-            pid = Zygote.forkAndSpecialize(parsedArgs.uid, parsedArgs.gid, parsedArgs.gids,
+-                    parsedArgs.debugFlags, rlimits, parsedArgs.mountExternal, parsedArgs.seInfo,
+-                    parsedArgs.niceName, fdsToClose, parsedArgs.instructionSet,
+-                    parsedArgs.appDataDir);
++            Log.e(TAG + "lingyang", "parsedArgs.remianingArgs: " + Arrays.toString(parsedArgs.remainingArgs));
++            Log.e(TAG + "lingyang", "parsedArgs.remianingArgs: \n" + Log.getStackTraceString(new Throwable("lingyang")));
++            if (parsedArgs.remainingArgs.length >= 3 && parsedArgs.remainingArgs[0].equals("android.app.ActivityThread")) {
++                int which = Integer.parseInt(parsedArgs.remainingArgs[1]);
++                String name = parsedArgs.remainingArgs[2];
++                pid = Zygote.forkAndSpecialize(parsedArgs.uid, parsedArgs.gid, parsedArgs.gids,
++                        parsedArgs.debugFlags, rlimits, parsedArgs.mountExternal, parsedArgs.seInfo,
++                        parsedArgs.niceName, fdsToClose, parsedArgs.instructionSet,
++                        parsedArgs.appDataDir, which, name);
++            } else {
++                pid = Zygote.forkAndSpecialize(parsedArgs.uid, parsedArgs.gid, parsedArgs.gids,
++                        parsedArgs.debugFlags, rlimits, parsedArgs.mountExternal, parsedArgs.seInfo,
++                        parsedArgs.niceName, fdsToClose, parsedArgs.instructionSet,
++                        parsedArgs.appDataDir, 0, null);
++            }
++            Log.e(TAG + "lingyang", "parsedArgs.remianingArgs: " + Arrays.toString(parsedArgs.remainingArgs));
+             checkTime(startTime, "zygoteConnection.runOnce: postForkAndSpecialize");
+         } catch (IOException ex) {
+             logAndPrintError(newStderr, "Exception creating pipe", ex);
+@@ -595,7 +608,7 @@ class ZygoteConnection {
+             throws IOException {
+ 
+         /**
+-         * See android.os.Process.zygoteSendArgsAndGetPid()
++         * See android.os.Process.zygoteSendArgsAndGetResult()
+          * Presently the wire format to the zygote process is:
+          * a) a count of arguments (argc, in essence)
+          * b) a number of newline-separated argument strings equal to count
+@@ -608,7 +621,13 @@ class ZygoteConnection {
+ 
+         try {
+             String s = mSocketReader.readLine();
++            // #=> 找到mSocketReader指向的本地套接字，看是否是为接收Process.java中的数据
++            try {
++                Log.e(TAG + "lingyang", "Socket descriptor: " + mSocket.getFileDescriptor().toString());
++                Log.e(TAG + "lingyang", "Socket name: " + mSocket.getRemoteSocketAddress());
++            } catch (Exception e) {
+ 
++            }
+             if (s == null) {
+                 // EOF reached.
+                 return null;
+diff --git a/core/java/com/android/internal/os/ZygoteInit.java b/core/java/com/android/internal/os/ZygoteInit.java
+index d95cf71..bb14737 100644
+--- a/core/java/com/android/internal/os/ZygoteInit.java
++++ b/core/java/com/android/internal/os/ZygoteInit.java
+@@ -54,6 +54,7 @@ import java.lang.reflect.InvocationTargetException;
+ import java.lang.reflect.Method;
+ import java.lang.reflect.Modifier;
+ import java.util.ArrayList;
++import java.util.Arrays;
+ 
+ /**
+  * Startup class for the zygote process.
+@@ -164,8 +165,12 @@ public class ZygoteInit {
+             int fileDesc;
+             final String fullSocketName = ANDROID_SOCKET_PREFIX + socketName;
+             try {
++                // #=> fullSocketName = ANDROID_SOCKET_zygote;
++                Log.e(TAG + "lingyang", "fullSocketName: " + fullSocketName);
+                 String env = System.getenv(fullSocketName);
++                Log.e(TAG + "lingyang", "env: " + env);
+                 fileDesc = Integer.parseInt(env);
++                Log.e(TAG + "lingyang", "fullSocketName File Descriptor: " + fileDesc);
+             } catch (RuntimeException ex) {
+                 throw new RuntimeException(fullSocketName + " unset or invalid", ex);
+             }
+@@ -186,6 +191,7 @@ public class ZygoteInit {
+      */
+     private static ZygoteConnection acceptCommandPeer(String abiList) {
+         try {
++            Log.e(TAG + "lingyang", "acceptCommandPeer abiList: " + abiList);
+             return new ZygoteConnection(sServerSocket.accept(), abiList);
+         } catch (IOException ex) {
+             throw new RuntimeException(
+@@ -649,10 +655,12 @@ public class ZygoteInit {
+         try {
+             // Start profiling the zygote initialization.
+             SamplingProfilerIntegration.start();
++            Log.e(TAG + "lingyang", Arrays.toString(argv));
+ 
+             boolean startSystemServer = false;
+             String socketName = "zygote";
+             String abiList = null;
++            // #=> 读取配置文件中的配置，todo 未找到配置文件是什么？
+             for (int i = 1; i < argv.length; i++) {
+                 if ("start-system-server".equals(argv[i])) {
+                     startSystemServer = true;
+@@ -691,6 +699,8 @@ public class ZygoteInit {
+             }
+ 
+             Log.i(TAG, "Accepting command socket connections");
++            Log.e(TAG + "lingyang", "runSelectLoop(abiList), abiList: " + abiList);
++            Log.e(TAG + "lingyang", "Socket name: " + sServerSocket.toString());
+             runSelectLoop(abiList);
+ 
+             closeServerSocket();
+@@ -710,7 +720,7 @@ public class ZygoteInit {
+      * list. If this zygote supports all ABIs this device supports, there won't
+      * be another zygote.
+      */
+-    private static boolean hasSecondZygote(String abiList) {
++    private static boolean hasSecondZygote(String abiList) {    // #=> return true in shamu
+         return !SystemProperties.get("ro.product.cpu.abilist").equals(abiList);
+     }
+ 
+diff --git a/core/jni/Android.mk b/core/jni/Android.mk
+index dbaa4b8..0398399 100644
+--- a/core/jni/Android.mk
++++ b/core/jni/Android.mk
+@@ -248,6 +248,7 @@ LOCAL_SHARED_LIBRARIES := \
+ 	libstlport \
+ 	libprocessgroup \
+ 	libnativebridge \
++	libpmfunc \
+ 
+ ifeq ($(USE_OPENGL_RENDERER),true)
+ 	LOCAL_SHARED_LIBRARIES += libhwui
+@@ -258,6 +259,7 @@ LOCAL_SHARED_LIBRARIES += \
+ # we need to access the private Bionic header
+ # <bionic_tls.h> in com_google_android_gles_jni_GLImpl.cpp
+ LOCAL_CFLAGS += -I$(LOCAL_PATH)/../../../../bionic/libc/private
++LOCAL_CFLAGS += -I$(LOCAL_PATH)/../../../../vendor/top/libs/libpmfunc
+ 
+ ifeq ($(WITH_MALLOC_LEAK_CHECK),true)
+ 	LOCAL_CFLAGS += -DMALLOC_LEAK_CHECK
+diff --git a/core/jni/com_android_internal_os_Zygote.cpp b/core/jni/com_android_internal_os_Zygote.cpp
+index 4f5e08b..a079ee0 100644
+--- a/core/jni/com_android_internal_os_Zygote.cpp
++++ b/core/jni/com_android_internal_os_Zygote.cpp
+@@ -53,6 +53,8 @@
+ 
+ #include "nativebridge/native_bridge.h"
+ 
++extern bool prepareDualInstance(int which, char *name, unsigned int uid, unsigned int gid);
++
+ namespace {
+ 
+ using android::String8;
+@@ -428,7 +430,7 @@ static pid_t ForkAndSpecializeCommon(JNIEnv* env, uid_t uid, gid_t gid, jintArra
+                                      jint mount_external,
+                                      jstring java_se_info, jstring java_se_name,
+                                      bool is_system_server, jintArray fdsToClose,
+-                                     jstring instructionSet, jstring dataDir) {
++                                     jstring instructionSet, jstring dataDir, jint which, jstring name) {
+   uint64_t start = MsTime();
+   SetSigChldHandler();
+   ckTime(start, "ForkAndSpecializeCommon:SetSigChldHandler");
+@@ -481,6 +483,24 @@ static pid_t ForkAndSpecializeCommon(JNIEnv* env, uid_t uid, gid_t gid, jintArra
+       }
+     }
+ 
++    const char* name_c_str = NULL;
++    ScopedUtfChars* name_str = NULL;
++    if (java_se_name != NULL) {
++        name_str = new ScopedUtfChars(env, java_se_name);
++        name_c_str = name_str->c_str();
++        if (name_c_str != NULL && strcmp(name_c_str, "com.tencent.mm") == 0) {
++          bool result = prepareDualInstance(1, (char *)name_c_str, uid, gid);
++          if (result) {
++            ALOGE("prepareDualInstance is true. log by lingyang\n");
++          } else {
++            ALOGE("prepareDualInstance is false. log by lingyang\n");
++          }
++        } else {
++          ALOGE("prepareDualInstance is not running. log by lingyang\n");
++        }
++    } else {
++      ALOGE("java_se_name is NULL, prepareDualInstance can't run. log by lingyang\n");
++    }
+     if (!is_system_server) {
+         int rc = createProcessGroup(uid, getpid());
+         if (rc != 0) {
+@@ -590,7 +610,7 @@ static jint com_android_internal_os_Zygote_nativeForkAndSpecialize(
+         JNIEnv* env, jclass, jint uid, jint gid, jintArray gids,
+         jint debug_flags, jobjectArray rlimits,
+         jint mount_external, jstring se_info, jstring se_name,
+-        jintArray fdsToClose, jstring instructionSet, jstring appDataDir) {
++        jintArray fdsToClose, jstring instructionSet, jstring appDataDir, jint which, jstring name) {
+     // Grant CAP_WAKE_ALARM to the Bluetooth process.
+     jlong capabilities = 0;
+     if (uid == AID_BLUETOOTH) {
+@@ -599,7 +619,7 @@ static jint com_android_internal_os_Zygote_nativeForkAndSpecialize(
+ 
+     return ForkAndSpecializeCommon(env, uid, gid, gids, debug_flags,
+             rlimits, capabilities, capabilities, mount_external, se_info,
+-            se_name, false, fdsToClose, instructionSet, appDataDir);
++            se_name, false, fdsToClose, instructionSet, appDataDir, which, name);
+ }
+ 
+ static jint com_android_internal_os_Zygote_nativeForkSystemServer(
+@@ -610,7 +630,7 @@ static jint com_android_internal_os_Zygote_nativeForkSystemServer(
+                                       debug_flags, rlimits,
+                                       permittedCapabilities, effectiveCapabilities,
+                                       MOUNT_EXTERNAL_NONE, NULL, NULL, true, NULL,
+-                                      NULL, NULL);
++                                      NULL, NULL, NULL, NULL);
+   if (pid > 0) {
+       // The zygote process checks whether the child process has died or not.
+       ALOGI("System server process %d has been created", pid);
+@@ -629,7 +649,7 @@ static jint com_android_internal_os_Zygote_nativeForkSystemServer(
+ 
+ static JNINativeMethod gMethods[] = {
+     { "nativeForkAndSpecialize",
+-      "(II[II[[IILjava/lang/String;Ljava/lang/String;[ILjava/lang/String;Ljava/lang/String;)I",
++      "(II[II[[IILjava/lang/String;Ljava/lang/String;[ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;)I",
+       (void *) com_android_internal_os_Zygote_nativeForkAndSpecialize },
+     { "nativeForkSystemServer", "(II[II[[IJJ)I",
+       (void *) com_android_internal_os_Zygote_nativeForkSystemServer }
+diff --git a/services/accessibility/java/com/android/server/accessibility/AccessibilityManagerService.java b/services/accessibility/java/com/android/server/accessibility/AccessibilityManagerService.java
+index 93c65f3..aacd58b 100644
+--- a/services/accessibility/java/com/android/server/accessibility/AccessibilityManagerService.java
++++ b/services/accessibility/java/com/android/server/accessibility/AccessibilityManagerService.java
+@@ -3816,6 +3816,12 @@ public class AccessibilityManagerService extends IAccessibilityManager.Stub {
+         private final Uri mDisplayDaltonizerEnabledUri = Settings.Secure.getUriFor(
+                 Settings.Secure.ACCESSIBILITY_DISPLAY_DALTONIZER_ENABLED);
+ 
++        private final Uri mDisplayProtectiveEyeEnabledUri = Settings.Secure.getUriFor(
++                Settings.Secure.NIGHT_SHIFT_ENABLED);
++
++        private final Uri mDisplayProtectiveEyeUri = Settings.Secure.getUriFor(
++                Settings.Secure.NIGHT_SHIFT_VALUE);
++
+         private final Uri mDisplayDaltonizerUri = Settings.Secure.getUriFor(
+                 Settings.Secure.ACCESSIBILITY_DISPLAY_DALTONIZER);
+ 
+@@ -3888,6 +3894,8 @@ public class AccessibilityManagerService extends IAccessibilityManager.Stub {
+                     }
+                 } else if (mDisplayInversionEnabledUri.equals(uri)
+                         || mDisplayDaltonizerEnabledUri.equals(uri)
++                        || mDisplayProtectiveEyeEnabledUri.equals(uri)
++                        || mDisplayProtectiveEyeUri.equals(uri)
+                         || mDisplayDaltonizerUri.equals(uri)) {
+                     if (readDisplayColorAdjustmentSettingsLocked(userState)) {
+                         updateDisplayColorAdjustmentSettingsLocked(userState);
+diff --git a/services/accessibility/java/com/android/server/accessibility/DisplayAdjustmentUtils.java b/services/accessibility/java/com/android/server/accessibility/DisplayAdjustmentUtils.java
+index 38827d0..da7b7fe 100644
+--- a/services/accessibility/java/com/android/server/accessibility/DisplayAdjustmentUtils.java
++++ b/services/accessibility/java/com/android/server/accessibility/DisplayAdjustmentUtils.java
+@@ -49,6 +49,14 @@ class DisplayAdjustmentUtils {
+            1,    1,    1, 1
+     };
+ 
++    private static final float[] PROTECTIVE_EYE_BASE_VALUSE = new float[] {
++            1, 0, 0,    0,
++            0, 1, 0,    0,
++            0, 0, 0.8f, 0,
++            0, 0, 0,    1
++    };
++
++
+     /** Default inversion mode for display color correction. */
+     private static final int DEFAULT_DISPLAY_DALTONIZER =
+             AccessibilityManager.DALTONIZER_CORRECT_DEUTERANOMALY;
+@@ -69,6 +77,10 @@ class DisplayAdjustmentUtils {
+                 Settings.Secure.ACCESSIBILITY_DISPLAY_DALTONIZER_ENABLED, 0, userId) != 0) {
+             return true;
+         }
++        if (Settings.Secure.getIntForUser(cr,
++                Settings.Secure.NIGHT_SHIFT_ENABLED, 0, userId) != 0) {
++            return true;
++        }
+ 
+         return false;
+     }
+@@ -76,7 +88,7 @@ class DisplayAdjustmentUtils {
+     /**
+      * Applies the specified user's display color adjustments.
+      */
+-    public static void applyAdjustments(Context context, int userId) {
++    public static void applyAdjustments(Context context, int userId) {  // #=> userId = 0;
+         final ContentResolver cr = context.getContentResolver();
+         float[] colorMatrix = null;
+ 
+@@ -86,6 +98,18 @@ class DisplayAdjustmentUtils {
+         }
+ 
+         if (Settings.Secure.getIntForUser(cr,
++                Settings.Secure.NIGHT_SHIFT_ENABLED, 0, userId) != 0) {
++            final float protectiveEyeValue = Settings.Secure.getFloatForUser(cr,
++                    Settings.Secure.NIGHT_SHIFT_VALUE, 1.0f, userId);
++            // todo 判断是否为零
++            if (protectiveEyeValue > -0.00001f || protectiveEyeValue < 0.00001f) {
++                colorMatrix = multiply(colorMatrix, PROTECTIVE_EYE_BASE_VALUSE);
++            } else {
++
++            }
++        }
++
++        if (Settings.Secure.getIntForUser(cr,
+                 Settings.Secure.ACCESSIBILITY_DISPLAY_DALTONIZER_ENABLED, 0, userId) != 0) {
+             final int daltonizerMode = Settings.Secure.getIntForUser(cr,
+                     Settings.Secure.ACCESSIBILITY_DISPLAY_DALTONIZER, DEFAULT_DISPLAY_DALTONIZER,
+@@ -95,7 +119,7 @@ class DisplayAdjustmentUtils {
+                 colorMatrix = multiply(colorMatrix, GRAYSCALE_MATRIX);
+                 setDaltonizerMode(AccessibilityManager.DALTONIZER_DISABLED);
+             } else {
+-                setDaltonizerMode(daltonizerMode);
++                setDaltonizerMode(daltonizerMode);  //13
+             }
+         } else {
+             setDaltonizerMode(AccessibilityManager.DALTONIZER_DISABLED);
+diff --git a/services/core/java/com/android/server/am/ActivityManagerService.java b/services/core/java/com/android/server/am/ActivityManagerService.java
+index 2ab447a..d9ca517 100755
+--- a/services/core/java/com/android/server/am/ActivityManagerService.java
++++ b/services/core/java/com/android/server/am/ActivityManagerService.java
+@@ -2777,8 +2777,9 @@ public final class ActivityManagerService extends ActivityManagerNative
+             String abiOverride, String entryPoint, String[] entryPointArgs, Runnable crashHandler) {
+         long startTime = SystemClock.elapsedRealtime();
+         ProcessRecord app;
+-        if (!isolated) {
+-            app = getProcessRecordLocked(processName, info.uid, keepIfLarge);
++        if (!isolated) { // #=> isolated is false;
++            app = getProcessRecordLocked(processName, info.uid, keepIfLarge);   // #=> keepIfLarge is true
++            // #=> ProcessRecord proc = mProcessNames.get(processName, uid);
+             checkTime(startTime, "startProcess: after getProcessRecord");
+         } else {
+             // If this is an isolated process, it can't re-use an existing process.
+@@ -2817,7 +2818,7 @@ public final class ActivityManagerService extends ActivityManagerNative
+         String hostingNameStr = hostingName != null
+                 ? hostingName.flattenToShortString() : null;
+ 
+-        if (!isolated) {
++        if (!isolated) {    // #=> isolated is false;
+             if ((intentFlags&Intent.FLAG_FROM_BACKGROUND) != 0) {
+                 // If we are in the background, then check to see if this process
+                 // is bad.  If so, we will just silently fail.
+@@ -3348,6 +3349,7 @@ public final class ActivityManagerService extends ActivityManagerNative
+     public final int startActivity(IApplicationThread caller, String callingPackage,
+             Intent intent, String resolvedType, IBinder resultTo, String resultWho, int requestCode,
+             int startFlags, ProfilerInfo profilerInfo, Bundle options) {
++        // #=>(whoThread, "com.android.launcher3", intent, null, token, target.mEmbeddedID, -1, 0, null, null);
+         return startActivityAsUser(caller, callingPackage, intent, resolvedType, resultTo,
+             resultWho, requestCode, startFlags, profilerInfo, options,
+             UserHandle.getCallingUserId());
+@@ -15173,7 +15175,7 @@ public final class ActivityManagerService extends ActivityManagerNative
+     int handleIncomingUser(int callingPid, int callingUid, int userId, boolean allowAll,
+             int allowMode, String name, String callerPackage) {
+         final int callingUserId = UserHandle.getUserId(callingUid);
+-        if (callingUserId == userId) {
++        if (callingUserId == userId) {// #=> false
+             return userId;
+         }
+ 
+diff --git a/services/core/java/com/android/server/am/ActivityStackSupervisor.java b/services/core/java/com/android/server/am/ActivityStackSupervisor.java
+index 32787d8..c6a4612 100644
+--- a/services/core/java/com/android/server/am/ActivityStackSupervisor.java
++++ b/services/core/java/com/android/server/am/ActivityStackSupervisor.java
+@@ -840,6 +840,13 @@ public final class ActivityStackSupervisor implements DisplayListener {
+             IBinder resultTo, String resultWho, int requestCode, int startFlags,
+             ProfilerInfo profilerInfo, WaitResult outResult, Configuration config,
+             Bundle options, int userId, IActivityContainer iContainer, TaskRecord inTask) {
++        /*
++        return mStackSupervisor.startActivityMayWait(caller, -1,
++                                callingPackage, intent, resolvedType,
++                                null, null,
++                                resultTo, null, -1, 0,
++                null, null, null, null, userId, null, null);*/
++
+         // Refuse possible leaked file descriptors
+         if (intent != null && intent.hasFileDescriptors()) {
+             throw new IllegalArgumentException("File descriptors passed in Intent");
+@@ -853,14 +860,14 @@ public final class ActivityStackSupervisor implements DisplayListener {
+         ActivityInfo aInfo = resolveActivity(intent, resolvedType, startFlags,
+                 profilerInfo, userId);
+ 
+-        ActivityContainer container = (ActivityContainer)iContainer;
++        ActivityContainer container = (ActivityContainer)iContainer; // #=> IContainer is null;
+         synchronized (mService) {
+             final int realCallingPid = Binder.getCallingPid();
+             final int realCallingUid = Binder.getCallingUid();
+             int callingPid;
+             if (callingUid >= 0) {
+                 callingPid = -1;
+-            } else if (caller == null) {
++            } else if (caller == null) { // #=> caller is not null
+                 callingPid = realCallingPid;
+                 callingUid = realCallingUid;
+             } else {
+@@ -868,12 +875,12 @@ public final class ActivityStackSupervisor implements DisplayListener {
+             }
+ 
+             final ActivityStack stack;
+-            if (container == null || container.mStack.isOnHomeDisplay()) {
++            if (container == null || container.mStack.isOnHomeDisplay()) { // #=> container is null
+                 stack = getFocusedStack();
+             } else {
+                 stack = container.mStack;
+             }
+-            stack.mConfigWillChange = config != null
++            stack.mConfigWillChange = config != null    // #=> false;
+                     && mService.mConfiguration.diff(config) != 0;
+             if (DEBUG_CONFIGURATION) Slog.v(TAG,
+                     "Starting activity when config will change = " + stack.mConfigWillChange);
+@@ -882,6 +889,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
+ 
+             if (aInfo != null &&
+                     (aInfo.applicationInfo.flags&ApplicationInfo.FLAG_CANT_SAVE_STATE) != 0) {
++                // #=> this process is a heavy-weight process.
+                 // This may be a heavy-weight process!  Check to see if we already
+                 // have another, different heavy-weight process running.
+                 if (aInfo.processName.equals(aInfo.applicationInfo.packageName)) {
+@@ -969,7 +977,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
+                 mService.updateConfigurationLocked(config, null, false, false);
+             }
+ 
+-            if (outResult != null) {
++            if (outResult != null) {    // #=> outResult is null;
+                 outResult.result = res;
+                 if (res == ActivityManager.START_SUCCESS) {
+                     mWaitingActivityLaunched.add(outResult);
+@@ -1301,6 +1309,13 @@ public final class ActivityStackSupervisor implements DisplayListener {
+             int realCallingPid, int realCallingUid, int startFlags, Bundle options,
+             boolean componentSpecified, ActivityRecord[] outActivity, ActivityContainer container,
+             TaskRecord inTask) {
++        /* #=>
++        startActivityLocked(caller, intent, resolvedType, aInfo,
++                null, null, resultTo, resultWho,
++                -1, -1, -1, callingPackage,
++                realCallingPid, realCallingUid, 0, null,
++                true, null, null, null);
++        */
+         int err = ActivityManager.START_SUCCESS;
+ 
+         ProcessRecord callerApp = null;
+@@ -1402,7 +1417,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
+             }
+         }
+ 
+-        if (err == ActivityManager.START_SUCCESS && voiceSession != null) {
++        if (err == ActivityManager.START_SUCCESS && voiceSession != null) { // #=> voiceSession is null;
+             // If the caller is starting a new voice session, just make sure the target
+             // is actually allowing it to run this way.
+             try {
+@@ -1427,9 +1442,9 @@ public final class ActivityStackSupervisor implements DisplayListener {
+             return err;
+         }
+ 
+-        final int startAnyPerm = mService.checkPermission(
++        final int startAnyPerm = mService.checkPermission(  // -1
+                 START_ANY_ACTIVITY, callingPid, callingUid);
+-        final int componentPerm = mService.checkComponentPermission(aInfo.permission, callingPid,
++        final int componentPerm = mService.checkComponentPermission(aInfo.permission, callingPid,   //#=> 0
+                 callingUid, aInfo.applicationInfo.uid, aInfo.exported);
+         if (startAnyPerm != PERMISSION_GRANTED && componentPerm != PERMISSION_GRANTED) {
+             if (resultRecord != null) {
+@@ -1468,7 +1483,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
+             }
+         }
+ 
+-        if (abort) {
++        if (abort) {    // #=> abort = false
+             if (resultRecord != null) {
+                 resultStack.sendActivityResultLocked(-1, resultRecord, resultWho, requestCode,
+                         Activity.RESULT_CANCELED, null);
+@@ -1599,6 +1614,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
+     final int startActivityUncheckedLocked(ActivityRecord r, ActivityRecord sourceRecord,
+             IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor, int startFlags,
+             boolean doResume, Bundle options, TaskRecord inTask) {
++        // #=> voiceSession = null, voiceInteractor = null, startFlags = 0, doResume = true, options = null, inTask = null
+         final Intent intent = r.intent;
+         final int callingUid = r.launchedFromUid;
+ 
+@@ -1639,7 +1655,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
+             }
+         }
+ 
+-        final boolean launchTaskBehind = r.mLaunchTaskBehind
++        final boolean launchTaskBehind = r.mLaunchTaskBehind    // #=> false
+                 && !launchSingleTask && !launchSingleInstance
+                 && (launchFlags & Intent.FLAG_ACTIVITY_NEW_DOCUMENT) != 0;
+ 
+@@ -1664,7 +1680,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
+         // we further want to do multiple task.
+         if ((launchFlags & Intent.FLAG_ACTIVITY_NEW_TASK) != 0) {
+             if (launchTaskBehind
+-                    || r.info.documentLaunchMode == ActivityInfo.DOCUMENT_LAUNCH_ALWAYS) {
++                    || r.info.documentLaunchMode == ActivityInfo.DOCUMENT_LAUNCH_ALWAYS) {    // #=> false;
+                 launchFlags |= Intent.FLAG_ACTIVITY_MULTIPLE_TASK;
+             }
+         }
+@@ -1681,7 +1697,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
+             r.delayedResume = true;
+         }
+ 
+-        ActivityRecord notTop =
++        ActivityRecord notTop = // #=> r;
+                 (launchFlags & Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP) != 0 ? r : null;
+ 
+         // If the onlyIfNeeded flag is set, then we can do this if the activity
+@@ -1891,7 +1907,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
+                         // the client said not to do anything if that
+                         // is the case, so this is it!  And for paranoia, make
+                         // sure we have correctly resumed the top activity.
+-                        if (doResume) {
++                        if (doResume) { // #=> doResume is true
+                             resumeTopActivitiesLocked(targetStack, null, options);
+ 
+                             // Make sure to notify Keyguard as well if we are not running an app
+diff --git a/services/core/java/com/android/server/wm/WindowManagerService.java b/services/core/java/com/android/server/wm/WindowManagerService.java
+index 089d897..ab85e44 100644
+--- a/services/core/java/com/android/server/wm/WindowManagerService.java
++++ b/services/core/java/com/android/server/wm/WindowManagerService.java
+@@ -4556,7 +4556,7 @@ public class WindowManagerService extends IWindowManager.Stub
+     }
+ 
+     @Override
+-    public void setAppVisibility(IBinder token, boolean visible) {
++    public void setAppVisibility(IBinder token, boolean visible) { // #=> true
+         if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
+                 "setAppVisibility()")) {
+             throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+
+project packages/apps/Browser/
+diff --git a/res/layout/font_size_widget.xml b/res/layout/font_size_widget.xml
+index 296f5bf..db05b3c 100644
+--- a/res/layout/font_size_widget.xml
++++ b/res/layout/font_size_widget.xml
+@@ -16,8 +16,8 @@
+ 
+ <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+     android:id="@+id/text"
+-    android:layout_width="wrap_content"
+-    android:layout_height="wrap_content"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
+     android:minWidth="50sp"
+     android:textAppearance="?android:attr/textAppearanceSmall"
+     android:textColor="?android:attr/textColorSecondary"
+
+project packages/apps/Launcher3/
+diff --git a/src/com/android/launcher3/InstallShortcutReceiver.java b/src/com/android/launcher3/InstallShortcutReceiver.java
+index 1ab3085..55841e7 100644
+--- a/src/com/android/launcher3/InstallShortcutReceiver.java
++++ b/src/com/android/launcher3/InstallShortcutReceiver.java
+@@ -271,7 +271,7 @@ public class InstallShortcutReceiver extends BroadcastReceiver {
+         /**
+          * Initializes a PendingInstallShortcutInfo received from a different app.
+          */
+-        public PendingInstallShortcutInfo(Intent data, Context context) {
++        public   PendingInstallShortcutInfo(Intent data, Context context) {
+             this.data = data;
+             mContext = context;
+ 
+
+project packages/apps/Settings/
+diff --git a/src/com/android/settings/SecuritySettings.java b/src/com/android/settings/SecuritySettings.java
+index 2019f74..5ae4bd0 100644
+--- a/src/com/android/settings/SecuritySettings.java
++++ b/src/com/android/settings/SecuritySettings.java
+@@ -737,6 +737,7 @@ public class SecuritySettings extends SettingsPreferenceFragment
+                 // todo write setting infomation.
+ 
+                 // todo build the direction
++                // prepareDualInstance()
+                 // todo maybe need to build some enviroment
+             }
+         }
