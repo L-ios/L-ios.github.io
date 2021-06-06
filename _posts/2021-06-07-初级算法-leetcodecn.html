@@ -1,0 +1,65 @@
+---
+date: 2021-06-07 00:04
+author: L-ios
+layout: post
+title: 初级算法-leetcodecn
+excerpt: leetcodecn 之初级算法
+tags: 
+- leetcode
+categories: 
+- leetcode
+permailink: /xxx
+---
+
+<div id="outline-container-orge32e2a5" class="outline-2">
+<h2 id="orge32e2a5">数组</h2>
+<div class="outline-text-2" id="text-orge32e2a5">
+</div>
+<div id="outline-container-orgf5a154b" class="outline-3">
+<h3 id="orgf5a154b"><a href="https://leetcode-cn.com/problems/remove-duplicates-from-sorted-array/">26.删除排序数组中的重复项</a></h3>
+<div class="outline-text-3" id="text-orgf5a154b">
+<p>
+本题主要是考察一个 <b>有序数组</b> 中的 <b>O(1)</b> 算法下的重复项过滤
+</p>
+</div>
+<ul class="org-ul">
+<li><a id="orgf9e3944"></a>应用场景<br />
+<div class="outline-text-4" id="text-orgf9e3944">
+<p>
+编码过程中，我们过滤重复项，主要是使用set，有此算法后，就可以抛弃set，进行重复项过滤
+</p>
+</div>
+<ul class="org-ul">
+<li><a id="orgcc01d0c"></a>限制条件<br />
+<div class="outline-text-5" id="text-orgcc01d0c">
+<ul class="org-ul">
+<li>有序数组</li>
+<li>非有序数组，重复项连续</li>
+</ul>
+</div>
+</li>
+</ul>
+</li>
+<li><a id="org987bb12"></a>编码，解法，讲解<br />
+<div class="outline-text-4" id="text-org987bb12">
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">int</span> <span style="color: #e7c547;">slow</span> = 0;
+<span style="color: #b9ca4a;">for</span> <span style="color: #eaeaea;">(</span><span style="color: #7aa6da;">int</span> <span style="color: #e7c547;">fast</span> = 1; fast &lt; nums.<span style="color: #7aa6da;">length</span>; fast++<span style="color: #eaeaea;">)</span> <span style="color: #eaeaea;">{</span>
+    <span style="color: #b9ca4a;">if</span> <span style="color: #70c0b1;">(</span>nums<span style="color: #e7c547;">[</span>slow<span style="color: #e7c547;">]</span> != nums<span style="color: #e7c547;">[</span>fast<span style="color: #e7c547;">]</span><span style="color: #70c0b1;">)</span> <span style="color: #70c0b1;">{</span>
+        nums<span style="color: #e7c547;">[</span>++slow<span style="color: #e7c547;">]</span> = nums<span style="color: #e7c547;">[</span>fast<span style="color: #e7c547;">]</span>;
+    <span style="color: #70c0b1;">}</span>
+<span style="color: #eaeaea;">}</span>
+<span style="color: #b9ca4a;">return</span> slow + 1;
+</pre>
+</div>
+<p>
+本体主要是使用了快慢指针，利用快指针进行 <b>有序重复数组</b> 的遍历，慢指针进行原地更新
+</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org4552f43" class="outline-2">
+<h2 id="org4552f43">字符串</h2>
+</div>
