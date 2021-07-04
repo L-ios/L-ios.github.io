@@ -21,7 +21,7 @@ JMH(Java Micro Benchmark Harness) 是一款专用于 Java 的微基准测试工�
 <p>
 通过 <code>gradle init</code> 创建一个 gradle java 工程
 </p>
-<pre class="example" id="org5a8424c">
+<pre class="example" id="orgba62526">
 $ gradle init
 Starting a Gradle Daemon, 1 busy Daemon could not be reused, use --status for details
 
@@ -169,7 +169,7 @@ BUILD SUCCESSFUL in 45s
 <p>
 通过 main 方法即可运行，运行结果如下
 </p>
-<pre class="example" id="org34e4209">
+<pre class="example" id="org6396cf8">
 11 8 7 7 7 7 6 7 6 42
 -------------------
 20 197 7 146 4 273 6 356 8 7
@@ -198,7 +198,7 @@ BUILD SUCCESSFUL in 45s
 如上的问题，都让 JMH 解决了，接下来我们使用 gradle 创建的项目，创建一个和 main 、test 同级的 jmh 目录
 </p>
 <div class="org-src-container">
-<pre class="src src-java"><span style="color: #268bd2;">@BenchmarkMode</span><span style="color: #839496;">(</span><span style="color: #268bd2;">Mode</span>.<span style="color: #268bd2;">AverageTime</span><span style="color: #839496;">)</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#24179;&#22343;&#26102;&#38388;&#27169;&#24335;</span>
+<pre class="src src-java" id="org06d29b6"><span style="color: #268bd2;">@BenchmarkMode</span><span style="color: #839496;">(</span><span style="color: #268bd2;">Mode</span>.<span style="color: #268bd2;">AverageTime</span><span style="color: #839496;">)</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#24179;&#22343;&#26102;&#38388;&#27169;&#24335;</span>
 <span style="color: #268bd2;">@Warmup</span><span style="color: #839496;">(</span>iterations = 2<span style="color: #839496;">)</span>
 <span style="color: #268bd2;">@Measurement</span><span style="color: #839496;">(</span>iterations = 5<span style="color: #839496;">)</span>
 <span style="color: #268bd2;">@OutputTimeUnit</span><span style="color: #839496;">(</span><span style="color: #268bd2;">TimeUnit</span>.<span style="color: #268bd2;">MICROSECONDS</span><span style="color: #839496;">)</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#36755;&#20986;&#30340;&#26102;&#38388;&#21333;&#20301;</span>
@@ -233,7 +233,7 @@ BUILD SUCCESSFUL in 45s
 </pre>
 </div>
 
-<pre class="example" id="orgc16694e">
+<pre class="example" id="orgdc152fb">
 Benchmark            (type)  Mode  Cnt  Score    Error  Units
 ListJMH.listAdd   ArrayList  avgt    5  0.020 ±  0.009  us/op
 ListJMH.listAdd  LinkedList  avgt    5  2.400 ± 19.558  us/op
@@ -292,7 +292,7 @@ BenchmarkMode注解表示用哪一种模式来运行JMH，JMH主要提供了四�
 <p>
 如下是 <code>@BenchmarkMode(Mode.All)</code> 的运行结果，四种模式可以任意组合
 </p>
-<pre class="example" id="org5ee54b6">
+<pre class="example" id="orgc0247c7">
 Benchmark                            (type)    Mode     Cnt      Score    Error   Units
 ListJMH.listAdd                   ArrayList   thrpt       5     50.621 ± 22.316  ops/us
 ListJMH.listAdd                  LinkedList   thrpt       5      6.461 ±  0.513  ops/us
@@ -394,7 +394,7 @@ Thread 和 Beachmark 运行的实例都是方法级线性的，也就是一个�
 <p>
 运行结果如下
 </p>
-<pre class="example" id="orga880813">
+<pre class="example" id="orga9672a6">
 Benchmark                        Mode  Cnt   Score   Error   Units
 JucMap.ConcurrentHashMap        thrpt    5  55.251 ± 0.879  ops/us
 JucMap.ConcurrentHashMap:read   thrpt    5  51.765 ± 0.932  ops/us
@@ -406,6 +406,34 @@ JucMap.ConcurrentHashMap:write  thrpt    5   3.486 ± 0.072  ops/us
 </div>
 <div id="outline-container-org4245c7a" class="outline-3">
 <h3 id="org4245c7a">Param</h3>
+<div class="outline-text-3" id="text-org4245c7a">
+<p>
+在针对接口的实现类进行测试性能是，需要从众多的实现类中找到最适合的实现类，为了快速的进行测试，我们可以使用 Param，使用可以参考上面的 ListJMH 代码
+</p>
+<pre class="example" id="orgd8006ef">
+@Param({"ArrayList", "LinkedList"}) // 配合 setup 方法使用
+private String type;
+
+private List&lt;String&gt; list;
+
+@Setup(Level.Iteration) // 调用的区间
+public void setup() {
+    switch (this.type) {
+        case "ArrayList":
+            this.list = new ArrayList&lt;&gt;();
+            break;
+        case "LinkedList":
+            this.list = new LinkedList&lt;&gt;();
+            break;
+        default:
+            throw new IllegalArgumentException("list type not found.");
+    }
+}
+</pre>
+<p>
+<code>@Param</code> 需要结合 <code>@Setup</code> 进行绑定使用， <code>@Param</code> 标记某个属性的值的可能性，在setup方法中检测，并赋值给测试属性 <b>list</b>, 测试结果参考ListJMH测试结果
+</p>
+</div>
 </div>
 
 <div id="outline-container-orgfb08948" class="outline-3">
