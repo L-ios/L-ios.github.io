@@ -21,7 +21,7 @@ JMH(Java Micro Benchmark Harness) 是一款专用于 Java 的微基准测试工�
 <p>
 通过 <code>gradle init</code> 创建一个 gradle java 工程
 </p>
-<pre class="example" id="orga44a21c">
+<pre class="example" id="orga104ef0">
 $ gradle init
 Starting a Gradle Daemon, 1 busy Daemon could not be reused, use --status for details
 
@@ -402,14 +402,12 @@ Thread 和 Beachmark 运行的实例都是方法级线性的，也就是一个�
 <p>
 运行结果如下
 </p>
-<blockquote>
-<p>
-Benchmark                        Mode  Cnt   Score   Error   Units
-JucMap.ConcurrentHashMap        thrpt    5  55.251 ± 0.879  ops/us
-JucMap.ConcurrentHashMap:read   thrpt    5  51.765 ± 0.932  ops/us
-JucMap.ConcurrentHashMap:write  thrpt    5   3.486 ± 0.072  ops/us
+<p class="verse">
+Benchmark                        Mode  Cnt   Score   Error   Units<br />
+JucMap.ConcurrentHashMap        thrpt    5  55.251 ± 0.879  ops/us<br />
+JucMap.ConcurrentHashMap:read   thrpt    5  51.765 ± 0.932  ops/us<br />
+JucMap.ConcurrentHashMap:write  thrpt    5   3.486 ± 0.072  ops/us<br />
 </p>
-</blockquote>
 </div>
 </li>
 </ul>
