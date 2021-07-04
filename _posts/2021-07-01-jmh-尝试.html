@@ -1,0 +1,438 @@
+---
+date: 2021-07-01 23:46
+author: L-ios
+layout: post
+title: JMH 尝试
+excerpt: Java Micro Benchmark Harness 入门
+tags: 
+- jmh
+- java
+categories: 
+- java
+permailink: /xxx
+---
+<p>
+JMH(Java Micro Benchmark Harness) 是一款专用于 Java 的微基准测试工具集，提供完成的测试方案，以及测试报告
+</p>
+
+<div id="outline-container-org7862bc6" class="outline-2">
+<h2 id="org7862bc6">Gradle JMH 工程</h2>
+<div class="outline-text-2" id="text-org7862bc6">
+<p>
+通过 <code>gradle init</code> 创建一个 gradle java 工程
+</p>
+<pre class="example" id="orga44a21c">
+$ gradle init
+Starting a Gradle Daemon, 1 busy Daemon could not be reused, use --status for details
+
+Select type of project to generate:
+  1: basic
+  2: application
+  3: library
+  4: Gradle plugin
+Enter selection (default: basic) [1..4] 2
+
+Select implementation language:
+  1: C++
+  2: Groovy
+  3: Java
+  4: Kotlin
+  5: Scala
+  6: Swift
+Enter selection (default: Java) [1..6] 
+
+Split functionality across multiple subprojects?:
+  1: no - only one application project
+  2: yes - application and library projects
+Enter selection (default: no - only one application project) [1..2] 2
+
+Select build script DSL:
+  1: Groovy
+  2: Kotlin
+Enter selection (default: Groovy) [1..2] 1
+
+Project name (default: jmh-dome): 
+Source package (default: jmh.dome): com.github.lios
+
+&gt; Task :init
+Get more help with your project: https://docs.gradle.org/7.0.1/samples/sample_building_java_applications_multi_project.html
+
+BUILD SUCCESSFUL in 45s
+2 actionable tasks: 2 executed
+</pre>
+</div>
+
+<div id="outline-container-org74ca72f" class="outline-3">
+<h3 id="org74ca72f">添加 jmh plugin</h3>
+<div class="outline-text-3" id="text-org74ca72f">
+<p>
+在 <span class="underline">build.gradle</span> 中的 plugin 代码块中添加 jmh
+</p>
+<div class="org-src-container">
+<pre class="src src-groovy">plugins <span style="color: #839496;">{</span>
+    id <span style="color: #2aa198;">"me.champeau.jmh"</span> version <span style="color: #2aa198;">"0.6.5"</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+
+<p>
+配置 jmh task
+</p>
+<div class="org-src-container">
+<pre class="src src-groovy">jmh <span style="color: #839496;">{</span>
+    includes = jmhIncludeFromProperty<span style="color: #2aa198;">()</span>
+    fork = 1
+    timeOnIteration = <span style="color: #2aa198;">'1s'</span>
+    warmup = <span style="color: #2aa198;">'1s'</span>
+    warmupIterations = 2
+<span style="color: #839496;">}</span>
+
+<span style="color: #586e75; font-style: italic;">/**</span>
+<span style="color: #586e75; font-style: italic;"> * jmh includes define from jvm property</span>
+<span style="color: #586e75; font-style: italic;"> *</span>
+<span style="color: #586e75; font-style: italic;"> * @return jmh includes of List</span>
+<span style="color: #586e75; font-style: italic;"> */</span>
+<span style="color: #268bd2;">List</span>&lt;<span style="color: #268bd2;">String</span>&gt; <span style="color: #b58900;">jmhIncludeFromProperty</span><span style="color: #839496;">()</span> <span style="color: #839496;">{</span>
+    <span style="color: #859900;">def</span> <span style="color: #6c71c4;">pIncludes</span> = <span style="color: #268bd2;">System</span>.getProperty<span style="color: #2aa198;">(</span><span style="color: #2aa198;">'jmh.include'</span><span style="color: #2aa198;">)</span>
+    <span style="color: #859900;">if</span> <span style="color: #2aa198;">(</span>pIncludes != <span style="color: #268bd2;">null</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">return</span> pIncludes.split<span style="color: #b58900;">(</span><span style="color: #2aa198;">','</span><span style="color: #b58900;">)</span>.toList<span style="color: #b58900;">()</span>
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #859900;">return</span> <span style="color: #268bd2;">List</span>.of<span style="color: #2aa198;">()</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org0fcf9e0" class="outline-2">
+<h2 id="org0fcf9e0">JMH 样例</h2>
+<div class="outline-text-2" id="text-org0fcf9e0">
+<p>
+此处以测试 <code>ArrayList#add</code> 和 <code>LinkedList#add</code> 的性能为基础
+</p>
+</div>
+
+<div id="outline-container-org4c98e21" class="outline-3">
+<h3 id="org4c98e21">非 JMH 性能测试</h3>
+<div class="outline-text-3" id="text-org4c98e21">
+<p>
+在没有使用jmh进行性能测试时，通常测试一个list的性能，或者一个函数的性能，主要是通过 循环 进行测试，但是这样的测试结果是不准确的，不自动化的，例如
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #859900;">public</span> <span style="color: #859900;">class</span> <span style="color: #268bd2;">NListBench</span> <span style="color: #839496;">{</span>
+    <span style="color: #859900;">private</span> <span style="color: #859900;">static</span> <span style="color: #859900;">final</span> <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">MAX_CAPACITY</span> = 1_000_000;
+    <span style="color: #859900;">private</span> <span style="color: #859900;">static</span> <span style="color: #859900;">final</span> <span style="color: #268bd2;">String</span> <span style="color: #6c71c4;">DUMMY</span> = <span style="color: #2aa198;">"Dummy Data"</span>;
+    <span style="color: #859900;">private</span> <span style="color: #859900;">static</span> <span style="color: #859900;">final</span> <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">MAX_ITERATIONS</span> = 10;
+
+    <span style="color: #859900;">public</span> <span style="color: #859900;">static</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">arrayListTest</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">final</span> <span style="color: #268bd2;">List</span><span style="color: #b58900;">&lt;</span><span style="color: #268bd2;">String</span><span style="color: #b58900;">&gt;</span> <span style="color: #6c71c4;">list</span> = <span style="color: #859900;">new</span> <span style="color: #268bd2;">ArrayList</span><span style="color: #b58900;">&lt;&gt;()</span>;
+        <span style="color: #268bd2;">long</span> <span style="color: #6c71c4;">start</span> = System.currentTimeMillis<span style="color: #b58900;">()</span>;
+        listTest<span style="color: #b58900;">(</span>list<span style="color: #b58900;">)</span>;
+        System.out.print<span style="color: #b58900;">(</span><span style="color: #859900;">(</span>System.currentTimeMillis<span style="color: #268bd2;">()</span> - start<span style="color: #859900;">)</span> + <span style="color: #2aa198;">" "</span><span style="color: #b58900;">)</span>;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #859900;">public</span> <span style="color: #859900;">static</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">arrayListTest_multi</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">for</span> <span style="color: #b58900;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">i</span> = 0; i &lt; <span style="color: #268bd2;">MAX_ITERATIONS</span>; i++<span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            arrayListTest<span style="color: #859900;">()</span>;
+        <span style="color: #b58900;">}</span>
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #859900;">public</span> <span style="color: #859900;">static</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">linkedListTest</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">final</span> <span style="color: #268bd2;">List</span><span style="color: #b58900;">&lt;</span><span style="color: #268bd2;">String</span><span style="color: #b58900;">&gt;</span> <span style="color: #6c71c4;">list</span> = <span style="color: #859900;">new</span> <span style="color: #268bd2;">LinkedList</span><span style="color: #b58900;">&lt;&gt;()</span>;
+        <span style="color: #268bd2;">long</span> <span style="color: #6c71c4;">start</span> = System.currentTimeMillis<span style="color: #b58900;">()</span>;
+        listTest<span style="color: #b58900;">(</span>list<span style="color: #b58900;">)</span>;
+        System.out.print<span style="color: #b58900;">(</span><span style="color: #859900;">(</span>System.currentTimeMillis<span style="color: #268bd2;">()</span> - start<span style="color: #859900;">)</span> + <span style="color: #2aa198;">" "</span><span style="color: #b58900;">)</span>;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #859900;">public</span> <span style="color: #859900;">static</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">linkedListTest_multi</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">for</span> <span style="color: #b58900;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">i</span> = 0; i &lt; <span style="color: #268bd2;">MAX_ITERATIONS</span>; i++<span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            linkedListTest<span style="color: #859900;">()</span>;
+        <span style="color: #b58900;">}</span>
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #859900;">public</span> <span style="color: #859900;">static</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">listTest</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">List</span><span style="color: #b58900;">&lt;</span><span style="color: #268bd2;">String</span><span style="color: #b58900;">&gt;</span> <span style="color: #6c71c4;">list</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">for</span> <span style="color: #b58900;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">i</span> = 0; i &lt; <span style="color: #268bd2;">MAX_CAPACITY</span>; i++<span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            list.add<span style="color: #859900;">(</span>DUMMY<span style="color: #859900;">)</span>;
+        <span style="color: #b58900;">}</span>
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #859900;">public</span> <span style="color: #859900;">static</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">main</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">String</span><span style="color: #b58900;">[]</span> <span style="color: #6c71c4;">args</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        arrayListTest_multi<span style="color: #b58900;">()</span>;
+        System.out.println<span style="color: #b58900;">(</span><span style="color: #2aa198;">"</span><span style="color: #6c71c4;">\</span><span style="color: #d33682;">n</span><span style="color: #2aa198;">-------------------"</span><span style="color: #b58900;">)</span>;
+        linkedListTest_multi<span style="color: #b58900;">()</span>;
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+
+<p>
+通过 main 方法即可运行，运行结果如下
+</p>
+<blockquote>
+<p>
+11 8 7 7 7 7 6 7 6 42
+</p>
+<hr />
+<p>
+20 197 7 146 4 273 6 356 8 7
+</p>
+</blockquote>
+
+<p>
+这里需要构造场景，制造for循环，编写main方法，其次还存在不少的问题；
+</p>
+<ul class="org-ul">
+<li>时间记录不准确，报告不够清晰，需要自定义</li>
+<li>可能引入了jvm优化</li>
+<li>其次两个测试都跑在同一个jvm中，存在一些实验变量不同</li>
+</ul>
+
+
+<p>
+<b>做实验，需要控制实验变量，让尽可能多的实验条件系统，从而让实验结果更加准确，也就是说运行环境需要高度一直</b>
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgcb5e390" class="outline-3">
+<h3 id="orgcb5e390">JMH实现</h3>
+<div class="outline-text-3" id="text-orgcb5e390">
+<p>
+如上的问题，都让 JMH 解决了，接下来我们使用 gradle 创建的项目，创建一个和 main 、test 同级的 jmh 目录
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #268bd2;">@BenchmarkMode</span><span style="color: #839496;">(</span><span style="color: #268bd2;">Mode</span>.<span style="color: #268bd2;">AverageTime</span><span style="color: #839496;">)</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#24179;&#22343;&#26102;&#38388;&#27169;&#24335;</span>
+<span style="color: #268bd2;">@Warmup</span><span style="color: #839496;">(</span>iterations = 2<span style="color: #839496;">)</span>
+<span style="color: #268bd2;">@Measurement</span><span style="color: #839496;">(</span>iterations = 5<span style="color: #839496;">)</span>
+<span style="color: #268bd2;">@OutputTimeUnit</span><span style="color: #839496;">(</span><span style="color: #268bd2;">TimeUnit</span>.<span style="color: #268bd2;">MICROSECONDS</span><span style="color: #839496;">)</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#36755;&#20986;&#30340;&#26102;&#38388;&#21333;&#20301;</span>
+<span style="color: #268bd2;">@State</span><span style="color: #839496;">(</span><span style="color: #268bd2;">Scope</span>.<span style="color: #268bd2;">Thread</span><span style="color: #839496;">)</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#32447;&#31243;&#29366;&#24577;</span>
+<span style="color: #859900;">public</span> <span style="color: #859900;">class</span> <span style="color: #268bd2;">ListJMH</span> <span style="color: #839496;">{</span>
+    <span style="color: #859900;">private</span> <span style="color: #859900;">static</span> <span style="color: #859900;">final</span> <span style="color: #268bd2;">String</span> <span style="color: #6c71c4;">DATA</span> = <span style="color: #2aa198;">"JMH Dummy"</span>;
+    <span style="color: #268bd2;">@Param</span><span style="color: #2aa198;">(</span><span style="color: #b58900;">{</span><span style="color: #2aa198;">"ArrayList"</span>, <span style="color: #2aa198;">"LinkedList"</span><span style="color: #b58900;">}</span><span style="color: #2aa198;">)</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#37197;&#21512; setup &#26041;&#27861;&#20351;&#29992;</span>
+    <span style="color: #859900;">private</span> <span style="color: #268bd2;">String</span> <span style="color: #6c71c4;">type</span>;
+
+    <span style="color: #859900;">private</span> <span style="color: #268bd2;">List</span><span style="color: #2aa198;">&lt;</span><span style="color: #268bd2;">String</span><span style="color: #2aa198;">&gt;</span> <span style="color: #6c71c4;">list</span>;
+
+    <span style="color: #268bd2;">@Setup</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">Level</span>.<span style="color: #268bd2;">Iteration</span><span style="color: #2aa198;">)</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#35843;&#29992;&#30340;&#21306;&#38388;</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">setup</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">switch</span> <span style="color: #b58900;">(</span><span style="color: #859900;">this</span>.type<span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #859900;">case</span> <span style="color: #2aa198;">"ArrayList"</span>:
+                <span style="color: #859900;">this</span>.list = <span style="color: #859900;">new</span> <span style="color: #268bd2;">ArrayList</span><span style="color: #859900;">&lt;&gt;()</span>;
+                <span style="color: #859900;">break</span>;
+            <span style="color: #859900;">case</span> <span style="color: #2aa198;">"LinkedList"</span>:
+                <span style="color: #859900;">this</span>.list = <span style="color: #859900;">new</span> <span style="color: #268bd2;">LinkedList</span><span style="color: #859900;">&lt;&gt;()</span>;
+                <span style="color: #859900;">break</span>;
+            <span style="color: #859900;">default</span>:
+                <span style="color: #859900;">throw</span> <span style="color: #859900;">new</span> <span style="color: #268bd2;">IllegalArgumentException</span><span style="color: #859900;">(</span><span style="color: #2aa198;">"list type not found."</span><span style="color: #859900;">)</span>;
+        <span style="color: #b58900;">}</span>
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Benchmark</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#27979;&#35797;&#26041;&#27861;</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">List</span><span style="color: #2aa198;">&lt;</span><span style="color: #268bd2;">String</span><span style="color: #2aa198;">&gt;</span> <span style="color: #b58900;">listAdd</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">this</span>.list.add<span style="color: #b58900;">(</span>DATA<span style="color: #b58900;">)</span>;
+        <span style="color: #859900;">return</span> <span style="color: #859900;">this</span>.list;
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+
+<blockquote>
+<p>
+Benchmark            (type)  Mode  Cnt  Score    Error  Units
+ListJMH.listAdd   ArrayList  avgt    5  0.020 ±  0.009  us/op
+ListJMH.listAdd  LinkedList  avgt    5  2.400 ± 19.558  us/op
+</p>
+</blockquote>
+
+<p>
+LinkedList 测试了 5次， 平均响应时间为 <i>2.4us(微秒)</i> 误差 <i>19.558us</i>
+</p>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-org584c5f6" class="outline-2">
+<h2 id="org584c5f6">JMH 基本概览和注解</h2>
+<div class="outline-text-2" id="text-org584c5f6">
+</div>
+<div id="outline-container-org0af1d73" class="outline-3">
+<h3 id="org0af1d73">Warmup</h3>
+<div class="outline-text-3" id="text-org0af1d73">
+<p>
+预热，让代码在运行时，先经历类的早期优化、JVM运行期编译、JIT优化后的最终形态，让测试结果更加准确。
+预热主要是标记代码预测的批次， <code>@Warmup(iterations = 3)</code> 表示代码需要3批次的预热，也可通过
+<code>class OptionsBuilder</code> 构造启动流程，自定义预热批次，粒度越细，优先级越高。
+全局配置 &lt; OptionsBuilder &lt; 类注解 &lt; 方法注解
+</p>
+</div>
+</div>
+
+<div id="outline-container-org4831a5d" class="outline-3">
+<h3 id="org4831a5d">Measurement</h3>
+<div class="outline-text-3" id="text-org4831a5d">
+<p>
+真正的性能测试度量批次，每批次的度量数据都会纳入度量统计，用于最后结果的度量。
+<code>@Measurement(iterations = 5)</code> 表示5批次的度量，也可以通过 <code>OptionsBuilder</code> 在构造启动流程时，
+进行自定义。可以注解在方法上，粒度越细，优先级越高（同 Warmup）
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgc86c6cd" class="outline-3">
+<h3 id="orgc86c6cd">BenchmarkMode</h3>
+<div class="outline-text-3" id="text-orgc86c6cd">
+<p>
+BenchmarkMode注解表示用哪一种模式来运行JMH，JMH主要提供了四种模式基础模式和全部模式执行的方式，
+四种模式分为
+</p>
+<dl class="org-dl">
+<dt><code>AverageTime</code></dt><dd>平均响应时间，在结果多次度量后，方法调用的平均耗时</dd>
+<dt><code>Throughout</code></dt><dd>方法吞吐量，其结果与 AverageTime 恰好相反，表示单位时间内可以对方法进行多少次调用</dd>
+<dt><code>SampleTime</code></dt><dd>时间采样，通过抽样的方式统计基准测试方法的性能结果，详细的显示主要是通过 Histogram（直方图）进行显示</dd>
+<dt><code>SingleShotTime</code></dt><dd>单次调用，冷启动场景下的耗时，通常在这种场景下无需 <b>预热</b> 。</dd>
+</dl>
+
+
+<p>
+如下是 <code>@BenchmarkMode(Mode.All)</code> 的运行结果，四种模式可以任意组合
+</p>
+<blockquote>
+<p>
+Benchmark                            (type)    Mode     Cnt      Score    Error   Units
+ListJMH.listAdd                   ArrayList   thrpt       5     50.621 ± 22.316  ops/us
+ListJMH.listAdd                  LinkedList   thrpt       5      6.461 ±  0.513  ops/us
+ListJMH.listAdd                   ArrayList    avgt       5      0.020 ±  0.012   us/op
+ListJMH.listAdd                  LinkedList    avgt       5      0.733 ±  5.214   us/op
+ListJMH.listAdd                   ArrayList  sample  134098      0.438 ±  1.300   us/op
+ListJMH.listAdd:listAdd·p0.00     ArrayList  sample              0.020            us/op
+ListJMH.listAdd:listAdd·p0.50     ArrayList  sample              0.030            us/op
+ListJMH.listAdd:listAdd·p0.90     ArrayList  sample              0.030            us/op
+ListJMH.listAdd:listAdd·p0.95     ArrayList  sample              0.030            us/op
+ListJMH.listAdd:listAdd·p0.99     ArrayList  sample              0.040            us/op
+ListJMH.listAdd:listAdd·p0.999    ArrayList  sample              0.230            us/op
+ListJMH.listAdd:listAdd·p0.9999   ArrayList  sample              9.588            us/op
+ListJMH.listAdd:listAdd·p1.00     ArrayList  sample          52953.088            us/op
+ListJMH.listAdd                  LinkedList  sample  144629      0.036 ±  0.001   us/op
+ListJMH.listAdd:listAdd·p0.00    LinkedList  sample              0.020            us/op
+ListJMH.listAdd:listAdd·p0.50    LinkedList  sample              0.030            us/op
+ListJMH.listAdd:listAdd·p0.90    LinkedList  sample              0.040            us/op
+ListJMH.listAdd:listAdd·p0.95    LinkedList  sample              0.040            us/op
+ListJMH.listAdd:listAdd·p0.99    LinkedList  sample              0.040            us/op
+ListJMH.listAdd:listAdd·p0.999   LinkedList  sample              0.914            us/op
+ListJMH.listAdd:listAdd·p0.9999  LinkedList  sample              3.714            us/op
+ListJMH.listAdd:listAdd·p1.00    LinkedList  sample             46.976            us/op
+ListJMH.listAdd                   ArrayList      ss              2.470            us/op
+ListJMH.listAdd                  LinkedList      ss              2.030            us/op
+</p>
+</blockquote>
+</div>
+</div>
+
+<div id="outline-container-orgce9f5f9" class="outline-3">
+<h3 id="orgce9f5f9">OutputTimeUnit</h3>
+<div class="outline-text-3" id="text-orgce9f5f9">
+<p>
+统计结果时的时间计量单位，设置方式同 Warmup
+</p>
+</div>
+</div>
+
+<div id="outline-container-org57f65c8" class="outline-3">
+<h3 id="org57f65c8">State</h3>
+<div class="outline-text-3" id="text-org57f65c8">
+<p>
+表示测试时的实例状态，作用于类上
+</p>
+</div>
+
+<ul class="org-ul">
+<li><a id="org20e7cc4"></a>Scope.Thread<br />
+<div class="outline-text-4" id="text-org20e7cc4">
+<p>
+每个线程独享当前测试的类实例，主要用于测试非线程安全类，可以通过 <code>@Thread(5)</code> 设置5个基准测试类进行测试
+</p>
+</div>
+</li>
+
+<li><a id="orgc2e90f7"></a>Scope.Beachmark<br />
+<div class="outline-text-4" id="text-orgc2e90f7">
+<p>
+有了测试非线程安全的方式，也有测试线程安全的方式，Beachmark 就是测试线程安全的方式，因此要测试 juc 系列的 api （例如ConcurrentHashMap）就可以用这种方式进行测试
+</p>
+</div>
+</li>
+
+<li><a id="org20d6caa"></a>Scope.Group<br />
+<div class="outline-text-4" id="text-org20d6caa">
+<p>
+Thread 和 Beachmark 运行的实例都是方法级线性的，也就是一个方法测试完成后，再测试下一个方法，若需要同时测试多个方法，我们就需要标记组的方式，列入同时测试 juc 中的api 读写性能就可以通过这种方式，如下
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #268bd2;">@BenchmarkMode</span><span style="color: #839496;">(</span><span style="color: #268bd2;">Mode</span>.<span style="color: #268bd2;">Throughout</span><span style="color: #839496;">)</span>
+<span style="color: #268bd2;">@OutputTimeUnit</span><span style="color: #839496;">(</span><span style="color: #268bd2;">TimeUnit</span>.<span style="color: #268bd2;">MICROSECONDS</span><span style="color: #839496;">)</span>
+<span style="color: #268bd2;">@State</span><span style="color: #839496;">(</span><span style="color: #268bd2;">Scope</span>.<span style="color: #268bd2;">Group</span><span style="color: #839496;">)</span>
+<span style="color: #268bd2;">@Threads</span><span style="color: #839496;">(</span>5<span style="color: #839496;">)</span>
+<span style="color: #859900;">public</span> <span style="color: #859900;">class</span> <span style="color: #268bd2;">JucMap</span> <span style="color: #839496;">{</span>
+
+    <span style="color: #859900;">private</span> <span style="color: #268bd2;">Map</span><span style="color: #2aa198;">&lt;</span><span style="color: #268bd2;">Long</span>, <span style="color: #268bd2;">Long</span><span style="color: #2aa198;">&gt;</span> <span style="color: #6c71c4;">testMap</span>;
+
+    <span style="color: #268bd2;">@Setup</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">setup</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        testMap = <span style="color: #859900;">new</span> <span style="color: #268bd2;">ConcurrentHashMap</span><span style="color: #b58900;">&lt;&gt;()</span>;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Group</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"ConcurrentHashMap"</span><span style="color: #2aa198;">)</span>
+    <span style="color: #268bd2;">@GroupThreads</span><span style="color: #2aa198;">(</span>3<span style="color: #2aa198;">)</span>
+    <span style="color: #268bd2;">@Benchmark</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">write</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        testMap.put<span style="color: #b58900;">(</span>System.currentTimeMillis<span style="color: #859900;">()</span>, 1L<span style="color: #b58900;">)</span>;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Group</span><span style="color: #2aa198;">(</span><span style="color: #2aa198;">"ConcurrentHashMap"</span><span style="color: #2aa198;">)</span>
+    <span style="color: #268bd2;">@GroupThreads</span><span style="color: #2aa198;">(</span>3<span style="color: #2aa198;">)</span>
+    <span style="color: #268bd2;">@Benchmark</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">read</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        testMap.get<span style="color: #b58900;">(</span>System.currentTimeMillis<span style="color: #859900;">()</span><span style="color: #b58900;">)</span>;
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+<p>
+运行结果如下
+</p>
+<blockquote>
+<p>
+Benchmark                        Mode  Cnt   Score   Error   Units
+JucMap.ConcurrentHashMap        thrpt    5  55.251 ± 0.879  ops/us
+JucMap.ConcurrentHashMap:read   thrpt    5  51.765 ± 0.932  ops/us
+JucMap.ConcurrentHashMap:write  thrpt    5   3.486 ± 0.072  ops/us
+</p>
+</blockquote>
+</div>
+</li>
+</ul>
+</div>
+<div id="outline-container-org4245c7a" class="outline-3">
+<h3 id="org4245c7a">Param</h3>
+</div>
+
+<div id="outline-container-orgfb08948" class="outline-3">
+<h3 id="orgfb08948">测试套件（Fixture）</h3>
+<div class="outline-text-3" id="text-orgfb08948">
+</div>
+<ul class="org-ul">
+<li><a id="orgfd23b8c"></a>Setup &amp; TearDown<br /></li>
+
+<li><a id="orgc8f2d6f"></a>CompilerControl<br /></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org5916232" class="outline-2">
+<h2 id="org5916232">JMH profile</h2>
+</div>
+
+<div id="outline-container-org058d64f" class="outline-2">
+<h2 id="org058d64f">JMH 注意点</h2>
+</div>
