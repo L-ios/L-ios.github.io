@@ -11,17 +11,67 @@ categories:
 - java
 permailink: /xxx
 ---
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org7862bc6">1. Gradle JMH 工程</a>
+<ul>
+<li><a href="#org74ca72f">1.1. 添加 jmh plugin</a></li>
+</ul>
+</li>
+<li><a href="#org0fcf9e0">2. JMH 样例</a>
+<ul>
+<li><a href="#org4c98e21">2.1. 非 JMH 性能测试</a></li>
+<li><a href="#orgcb5e390">2.2. JMH实现</a></li>
+</ul>
+</li>
+<li><a href="#org584c5f6">3. JMH 基本概览和注解</a>
+<ul>
+<li><a href="#org0af1d73">3.1. Warmup</a></li>
+<li><a href="#org4831a5d">3.2. Measurement</a></li>
+<li><a href="#orgc86c6cd">3.3. BenchmarkMode</a></li>
+<li><a href="#orgce9f5f9">3.4. OutputTimeUnit</a></li>
+<li><a href="#org57f65c8">3.5. State</a>
+<ul>
+<li><a href="#org20e7cc4">3.5.1. Scope.Thread</a></li>
+<li><a href="#orgc2e90f7">3.5.2. Scope.Beachmark</a></li>
+<li><a href="#org20d6caa">3.5.3. Scope.Group</a></li>
+</ul>
+</li>
+<li><a href="#org4245c7a">3.6. Param</a></li>
+<li><a href="#orgfb08948">3.7. 测试套件（Fixture）</a>
+<ul>
+<li><a href="#orgfd23b8c">3.7.1. Setup &amp; TearDown</a></li>
+<li><a href="#orgc8f2d6f">3.7.2. CompilerControl</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org08cd640">4. JMH profiler</a></li>
+<li><a href="#org058d64f">5. JMH 注意点</a>
+<ul>
+<li><a href="#org5420f90">5.1. 避免 DCE (Dead Code Elimination)</a></li>
+<li><a href="#orge03c8d2">5.2. Blackhole(JMH)</a></li>
+<li><a href="#org48f8ccf">5.3. 常量折叠</a></li>
+<li><a href="#org912e1df">5.4. 循环展开（Loop Unwingding）</a></li>
+<li><a href="#org4450d9e">5.5. Fork JVM</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
 <p>
 JMH(Java Micro Benchmark Harness) 是一款专用于 Java 的微基准测试工具集，提供完成的测试方案，以及测试报告
 </p>
 
 <div id="outline-container-org7862bc6" class="outline-2">
-<h2 id="org7862bc6">Gradle JMH 工程</h2>
-<div class="outline-text-2" id="text-org7862bc6">
+<h2 id="org7862bc6"><span class="section-number-2">1</span> Gradle JMH 工程</h2>
+<div class="outline-text-2" id="text-1">
 <p>
 通过 <code>gradle init</code> 创建一个 gradle java 工程
 </p>
-<pre class="example" id="orgba62526">
+<pre class="example" id="orgc683a99">
 $ gradle init
 Starting a Gradle Daemon, 1 busy Daemon could not be reused, use --status for details
 
@@ -63,8 +113,8 @@ BUILD SUCCESSFUL in 45s
 </div>
 
 <div id="outline-container-org74ca72f" class="outline-3">
-<h3 id="org74ca72f">添加 jmh plugin</h3>
-<div class="outline-text-3" id="text-org74ca72f">
+<h3 id="org74ca72f"><span class="section-number-3">1.1</span> 添加 jmh plugin</h3>
+<div class="outline-text-3" id="text-1-1">
 <p>
 在 <span class="underline">build.gradle</span> 中的 plugin 代码块中添加 jmh
 </p>
@@ -106,16 +156,16 @@ BUILD SUCCESSFUL in 45s
 </div>
 
 <div id="outline-container-org0fcf9e0" class="outline-2">
-<h2 id="org0fcf9e0">JMH 样例</h2>
-<div class="outline-text-2" id="text-org0fcf9e0">
+<h2 id="org0fcf9e0"><span class="section-number-2">2</span> JMH 样例</h2>
+<div class="outline-text-2" id="text-2">
 <p>
 此处以测试 <code>ArrayList#add</code> 和 <code>LinkedList#add</code> 的性能为基础
 </p>
 </div>
 
 <div id="outline-container-org4c98e21" class="outline-3">
-<h3 id="org4c98e21">非 JMH 性能测试</h3>
-<div class="outline-text-3" id="text-org4c98e21">
+<h3 id="org4c98e21"><span class="section-number-3">2.1</span> 非 JMH 性能测试</h3>
+<div class="outline-text-3" id="text-2-1">
 <p>
 在没有使用jmh进行性能测试时，通常测试一个list的性能，或者一个函数的性能，主要是通过 循环 进行测试，但是这样的测试结果是不准确的，不自动化的，例如
 </p>
@@ -169,7 +219,7 @@ BUILD SUCCESSFUL in 45s
 <p>
 通过 main 方法即可运行，运行结果如下
 </p>
-<pre class="example" id="org6396cf8">
+<pre class="example" id="orgf2fc825">
 11 8 7 7 7 7 6 7 6 42
 -------------------
 20 197 7 146 4 273 6 356 8 7
@@ -192,8 +242,8 @@ BUILD SUCCESSFUL in 45s
 </div>
 
 <div id="outline-container-orgcb5e390" class="outline-3">
-<h3 id="orgcb5e390">JMH实现</h3>
-<div class="outline-text-3" id="text-orgcb5e390">
+<h3 id="orgcb5e390"><span class="section-number-3">2.2</span> JMH实现</h3>
+<div class="outline-text-3" id="text-2-2">
 <p>
 如上的问题，都让 JMH 解决了，接下来我们使用 gradle 创建的项目，创建一个和 main 、test 同级的 jmh 目录
 </p>
@@ -248,12 +298,12 @@ LinkedList 测试了 5次， 平均响应时间为 <i>2.4us(微秒)</i> 误差 <
 
 
 <div id="outline-container-org584c5f6" class="outline-2">
-<h2 id="org584c5f6">JMH 基本概览和注解</h2>
-<div class="outline-text-2" id="text-org584c5f6">
+<h2 id="org584c5f6"><span class="section-number-2">3</span> JMH 基本概览和注解</h2>
+<div class="outline-text-2" id="text-3">
 </div>
 <div id="outline-container-org0af1d73" class="outline-3">
-<h3 id="org0af1d73">Warmup</h3>
-<div class="outline-text-3" id="text-org0af1d73">
+<h3 id="org0af1d73"><span class="section-number-3">3.1</span> Warmup</h3>
+<div class="outline-text-3" id="text-3-1">
 <p>
 预热，让代码在运行时，先经历类的早期优化、JVM运行期编译、JIT优化后的最终形态，让测试结果更加准确。
 预热主要是标记代码预测的批次， <code>@Warmup(iterations = 3)</code> 表示代码需要3批次的预热，也可通过
@@ -264,8 +314,8 @@ LinkedList 测试了 5次， 平均响应时间为 <i>2.4us(微秒)</i> 误差 <
 </div>
 
 <div id="outline-container-org4831a5d" class="outline-3">
-<h3 id="org4831a5d">Measurement</h3>
-<div class="outline-text-3" id="text-org4831a5d">
+<h3 id="org4831a5d"><span class="section-number-3">3.2</span> Measurement</h3>
+<div class="outline-text-3" id="text-3-2">
 <p>
 真正的性能测试度量批次，每批次的度量数据都会纳入度量统计，用于最后结果的度量。
 <code>@Measurement(iterations = 5)</code> 表示5批次的度量，也可以通过 <code>OptionsBuilder</code> 在构造启动流程时，
@@ -275,8 +325,8 @@ LinkedList 测试了 5次， 平均响应时间为 <i>2.4us(微秒)</i> 误差 <
 </div>
 
 <div id="outline-container-orgc86c6cd" class="outline-3">
-<h3 id="orgc86c6cd">BenchmarkMode</h3>
-<div class="outline-text-3" id="text-orgc86c6cd">
+<h3 id="orgc86c6cd"><span class="section-number-3">3.3</span> BenchmarkMode</h3>
+<div class="outline-text-3" id="text-3-3">
 <p>
 BenchmarkMode注解表示用哪一种模式来运行JMH，JMH主要提供了四种模式基础模式和全部模式执行的方式，
 四种模式分为
@@ -292,7 +342,7 @@ BenchmarkMode注解表示用哪一种模式来运行JMH，JMH主要提供了四�
 <p>
 如下是 <code>@BenchmarkMode(Mode.All)</code> 的运行结果，四种模式可以任意组合
 </p>
-<pre class="example" id="orgc0247c7">
+<pre class="example" id="orgefc1685">
 Benchmark                            (type)    Mode     Cnt      Score    Error   Units
 ListJMH.listAdd                   ArrayList   thrpt       5     50.621 ± 22.316  ops/us
 ListJMH.listAdd                  LinkedList   thrpt       5      6.461 ±  0.513  ops/us
@@ -323,8 +373,8 @@ ListJMH.listAdd                  LinkedList      ss              2.030          
 </div>
 
 <div id="outline-container-orgce9f5f9" class="outline-3">
-<h3 id="orgce9f5f9">OutputTimeUnit</h3>
-<div class="outline-text-3" id="text-orgce9f5f9">
+<h3 id="orgce9f5f9"><span class="section-number-3">3.4</span> OutputTimeUnit</h3>
+<div class="outline-text-3" id="text-3-4">
 <p>
 统计结果时的时间计量单位，设置方式同 Warmup
 </p>
@@ -332,32 +382,34 @@ ListJMH.listAdd                  LinkedList      ss              2.030          
 </div>
 
 <div id="outline-container-org57f65c8" class="outline-3">
-<h3 id="org57f65c8">State</h3>
-<div class="outline-text-3" id="text-org57f65c8">
+<h3 id="org57f65c8"><span class="section-number-3">3.5</span> State</h3>
+<div class="outline-text-3" id="text-3-5">
 <p>
 表示测试时的实例状态，作用于类上
 </p>
 </div>
 
-<ul class="org-ul">
-<li><a id="org20e7cc4"></a>Scope.Thread<br />
-<div class="outline-text-4" id="text-org20e7cc4">
+<div id="outline-container-org20e7cc4" class="outline-4">
+<h4 id="org20e7cc4"><span class="section-number-4">3.5.1</span> Scope.Thread</h4>
+<div class="outline-text-4" id="text-3-5-1">
 <p>
 每个线程独享当前测试的类实例，主要用于测试非线程安全类，可以通过 <code>@Thread(5)</code> 设置5个基准测试类进行测试
 </p>
 </div>
-</li>
+</div>
 
-<li><a id="orgc2e90f7"></a>Scope.Beachmark<br />
-<div class="outline-text-4" id="text-orgc2e90f7">
+<div id="outline-container-orgc2e90f7" class="outline-4">
+<h4 id="orgc2e90f7"><span class="section-number-4">3.5.2</span> Scope.Beachmark</h4>
+<div class="outline-text-4" id="text-3-5-2">
 <p>
 有了测试非线程安全的方式，也有测试线程安全的方式，Beachmark 就是测试线程安全的方式，因此要测试 juc 系列的 api （例如ConcurrentHashMap）就可以用这种方式进行测试
 </p>
 </div>
-</li>
+</div>
 
-<li><a id="org20d6caa"></a>Scope.Group<br />
-<div class="outline-text-4" id="text-org20d6caa">
+<div id="outline-container-org20d6caa" class="outline-4">
+<h4 id="org20d6caa"><span class="section-number-4">3.5.3</span> Scope.Group</h4>
+<div class="outline-text-4" id="text-3-5-3">
 <p>
 Thread 和 Beachmark 运行的实例都是方法级线性的，也就是一个方法测试完成后，再测试下一个方法，若需要同时测试多个方法，我们就需要标记组的方式，列入同时测试 juc 中的api 读写性能就可以通过这种方式，如下
 </p>
@@ -394,42 +446,42 @@ Thread 和 Beachmark 运行的实例都是方法级线性的，也就是一个�
 <p>
 运行结果如下
 </p>
-<pre class="example" id="orga9672a6">
+<pre class="example" id="org6a5598e">
 Benchmark                        Mode  Cnt   Score   Error   Units
 JucMap.ConcurrentHashMap        thrpt    5  55.251 ± 0.879  ops/us
 JucMap.ConcurrentHashMap:read   thrpt    5  51.765 ± 0.932  ops/us
 JucMap.ConcurrentHashMap:write  thrpt    5   3.486 ± 0.072  ops/us
 </pre>
 </div>
-</li>
-</ul>
+</div>
 </div>
 <div id="outline-container-org4245c7a" class="outline-3">
-<h3 id="org4245c7a">Param</h3>
-<div class="outline-text-3" id="text-org4245c7a">
+<h3 id="org4245c7a"><span class="section-number-3">3.6</span> Param</h3>
+<div class="outline-text-3" id="text-3-6">
 <p>
 在针对接口的实现类进行测试性能是，需要从众多的实现类中找到最适合的实现类，为了快速的进行测试，我们可以使用 Param，使用可以参考上面的 ListJMH 代码
 </p>
-<pre class="example" id="orgd8006ef">
-@Param({"ArrayList", "LinkedList"}) // 配合 setup 方法使用
-private String type;
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #268bd2;">@Param</span><span style="color: #839496;">(</span><span style="color: #2aa198;">{</span><span style="color: #2aa198;">"ArrayList"</span>, <span style="color: #2aa198;">"LinkedList"</span><span style="color: #2aa198;">}</span><span style="color: #839496;">)</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#37197;&#21512; setup &#26041;&#27861;&#20351;&#29992;</span>
+<span style="color: #859900;">private</span> <span style="color: #268bd2;">String</span> <span style="color: #6c71c4;">type</span>;
 
-private List&lt;String&gt; list;
+<span style="color: #859900;">private</span> <span style="color: #268bd2;">List</span><span style="color: #839496;">&lt;</span><span style="color: #268bd2;">String</span><span style="color: #839496;">&gt;</span> <span style="color: #6c71c4;">list</span>;
 
-@Setup(Level.Iteration) // 调用的区间
-public void setup() {
-    switch (this.type) {
-        case "ArrayList":
-            this.list = new ArrayList&lt;&gt;();
-            break;
-        case "LinkedList":
-            this.list = new LinkedList&lt;&gt;();
-            break;
-        default:
-            throw new IllegalArgumentException("list type not found.");
-    }
-}
+<span style="color: #268bd2;">@Setup</span><span style="color: #839496;">(</span><span style="color: #268bd2;">Level</span>.<span style="color: #268bd2;">Iteration</span><span style="color: #839496;">)</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#35843;&#29992;&#30340;&#21306;&#38388;</span>
+<span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">setup</span><span style="color: #839496;">()</span> <span style="color: #839496;">{</span>
+    <span style="color: #859900;">switch</span> <span style="color: #2aa198;">(</span><span style="color: #859900;">this</span>.type<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">case</span> <span style="color: #2aa198;">"ArrayList"</span>:
+            <span style="color: #859900;">this</span>.list = <span style="color: #859900;">new</span> <span style="color: #268bd2;">ArrayList</span><span style="color: #b58900;">&lt;&gt;()</span>;
+            <span style="color: #859900;">break</span>;
+        <span style="color: #859900;">case</span> <span style="color: #2aa198;">"LinkedList"</span>:
+            <span style="color: #859900;">this</span>.list = <span style="color: #859900;">new</span> <span style="color: #268bd2;">LinkedList</span><span style="color: #b58900;">&lt;&gt;()</span>;
+            <span style="color: #859900;">break</span>;
+        <span style="color: #859900;">default</span>:
+            <span style="color: #859900;">throw</span> <span style="color: #859900;">new</span> <span style="color: #268bd2;">IllegalArgumentException</span><span style="color: #b58900;">(</span><span style="color: #2aa198;">"list type not found."</span><span style="color: #b58900;">)</span>;
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
 </pre>
+</div>
 <p>
 <code>@Param</code> 需要结合 <code>@Setup</code> 进行绑定使用， <code>@Param</code> 标记某个属性的值的可能性，在setup方法中检测，并赋值给测试属性 <b>list</b>, 测试结果参考ListJMH测试结果
 </p>
@@ -437,20 +489,199 @@ public void setup() {
 </div>
 
 <div id="outline-container-orgfb08948" class="outline-3">
-<h3 id="orgfb08948">测试套件（Fixture）</h3>
-<div class="outline-text-3" id="text-orgfb08948">
+<h3 id="orgfb08948"><span class="section-number-3">3.7</span> 测试套件（Fixture）</h3>
+<div class="outline-text-3" id="text-3-7">
 </div>
-<ul class="org-ul">
-<li><a id="orgfd23b8c"></a>Setup &amp; TearDown<br /></li>
+<div id="outline-container-orgfd23b8c" class="outline-4">
+<h4 id="orgfd23b8c"><span class="section-number-4">3.7.1</span> Setup &amp; TearDown</h4>
+<div class="outline-text-4" id="text-3-7-1">
+<p>
+Setup &amp; TearDown 主要用于标记测试前后的操作，例如可以用于 <code>@Setup</code> 和 <code>@Param</code> 简化测试，让测试更聚焦在测试代码上。 <code>@Teardown</code> 可以处理一些资源回收的工作。可以插入一些判断
+</p>
 
-<li><a id="orgc8f2d6f"></a>CompilerControl<br /></li>
-</ul>
+<p>
+<code>@Setup &amp; @Teardown</code> 可以设置不同的level，用于标记注解的方法在测试生命上的运行方式。
+</p>
+<dl class="org-dl">
+<dt>Trial(defalt)</dt><dd>每一个基准测试都会运行</dd>
+<dt>Iteration</dt><dd>每次迭代，表示在运行 warmup 或 measurement 前运行</dd>
+<dt>Invocation</dt><dd>每个批次的度量下运行</dd>
+</dl>
 </div>
-</div>
-<div id="outline-container-org5916232" class="outline-2">
-<h2 id="org5916232">JMH profile</h2>
 </div>
 
+<div id="outline-container-orgc8f2d6f" class="outline-4">
+<h4 id="orgc8f2d6f"><span class="section-number-4">3.7.2</span> CompilerControl</h4>
+<div class="outline-text-4" id="text-3-7-2">
+<p>
+JVM会对代码进行优化，而 <code>@CompilerControl</code> 就是用于控制编译器优化的开关，也就是对运行时的编译器优化
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #268bd2;">@CompilerControl</span><span style="color: #839496;">(</span><span style="color: #268bd2;">CompilerControl</span>.<span style="color: #268bd2;">Mode</span>.<span style="color: #268bd2;">EXCLUDE</span><span style="color: #839496;">)</span>
+<span style="color: #268bd2;">@Benchmark</span>
+<span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">test</span><span style="color: #839496;">()</span> <span style="color: #839496;">{</span>
+
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+<p>
+如上的方式，test在运行时，相关的运行优化就会被搽除
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org08cd640" class="outline-2">
+<h2 id="org08cd640"><span class="section-number-2">4</span> JMH profiler</h2>
+<div class="outline-text-2" id="text-4">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Profiler Name</th>
+<th scope="col" class="org-left">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">CL</td>
+<td class="org-left">分析执行Benchmark时的类加载</td>
+</tr>
+
+<tr>
+<td class="org-left">COMP</td>
+<td class="org-left">通过 Standard MBean 进行 Benchmark 方法的 JIT 编译器分析</td>
+</tr>
+
+<tr>
+<td class="org-left">GC</td>
+<td class="org-left">通过 Standard MBean 进行 Benchmark 方法的 GC 分析</td>
+</tr>
+
+<tr>
+<td class="org-left">HS<sub>CL</sub></td>
+<td class="org-left">HotSpot 类加载器通过特定于实现的 MBean 进行分析</td>
+</tr>
+
+<tr>
+<td class="org-left">HS<sub>COMP</sub></td>
+<td class="org-left">HotSpot JIT通过特定于实现的 MBean 进行分析</td>
+</tr>
+
+<tr>
+<td class="org-left">HS<sub>GC</sub></td>
+<td class="org-left">HotSpot GC 通过特定于实现的 MBean 进行分析</td>
+</tr>
+
+<tr>
+<td class="org-left">HS<sub>RT</sub></td>
+<td class="org-left">通过 Implementation-Specific MBean 进行 HotSpot 运行时分析</td>
+</tr>
+
+<tr>
+<td class="org-left">HS<sub>THR</sub></td>
+<td class="org-left">通过 Implementation-Specific MBean 进行 HotSpot 线程分析</td>
+</tr>
+
+<tr>
+<td class="org-left">STACK</td>
+<td class="org-left">调用栈耗时分析</td>
+</tr>
+</tbody>
+</table>
+
+<div class="org-src-container">
+<pre class="src src-groovy">jmh <span style="color: #839496;">{</span>
+    includes = jmhIncludeFromProperty<span style="color: #2aa198;">()</span>
+    fork = 1
+    timeOnIteration = <span style="color: #2aa198;">'1s'</span>
+    warmup = <span style="color: #2aa198;">'1s'</span>
+    warmupIterations = 2
+    profilers = <span style="color: #2aa198;">[</span><span style="color: #2aa198;">'stack'</span><span style="color: #2aa198;">]</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+<p>
+如上，可以修改 jmh task 的 profilers 增加profiler监控，也可通过 <code>OptionsBuilder#addProfiler</code> 添加 profiler
+</p>
+</div>
+</div>
 <div id="outline-container-org058d64f" class="outline-2">
-<h2 id="org058d64f">JMH 注意点</h2>
+<h2 id="org058d64f"><span class="section-number-2">5</span> JMH 注意点</h2>
+<div class="outline-text-2" id="text-5">
+</div>
+<div id="outline-container-org5420f90" class="outline-3">
+<h3 id="org5420f90"><span class="section-number-3">5.1</span> 避免 DCE (Dead Code Elimination)</h3>
+<div class="outline-text-3" id="text-5-1">
+<p>
+DCE 是指 JVM 将代码中一些上下文无关的内容进行搽除，或者为了优化，将一些未使用的代码进行删除。
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #268bd2;">void</span> <span style="color: #b58900;">test_dce</span><span style="color: #839496;">()</span> <span style="color: #839496;">{</span>
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">x</span> = 10;
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">y</span> = 10;
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">z</span> = x +y;
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+<p>
+像如上的代码，结果编译优化后， <b>x</b> 和 <b>y</b> 就会被优化， <b>z</b> 为使用也会被优化，最后将 <code>test</code> 做为一个空方法
+</p>
+</div>
+</div>
+
+<div id="outline-container-orge03c8d2" class="outline-3">
+<h3 id="orge03c8d2"><span class="section-number-3">5.2</span> Blackhole(JMH)</h3>
+<div class="outline-text-3" id="text-5-2">
+<p>
+上面我们提到了 DCE，但是我们的构造测试时可能不会将测试的结果进行返回，DCE就容易发生，因此JMH提供了 Blackhole 的机制（类似 *nix系统下的 <span class="underline">dev/null</span> 文件）。可以有效的防止 DC 的发生， <code>test_dce</code> 使用blackhole后如下
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #268bd2;">@Benchmark</span>
+<span style="color: #268bd2;">void</span> <span style="color: #b58900;">test_dce</span><span style="color: #839496;">(</span><span style="color: #268bd2;">BlackHole</span> <span style="color: #6c71c4;">hole</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">x</span> = 10;
+    hole.consume<span style="color: #2aa198;">(</span>x<span style="color: #2aa198;">)</span>;
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">y</span> = 10;
+    hole.consume<span style="color: #2aa198;">(</span>y<span style="color: #2aa198;">)</span>;
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">z</span> = x +y;
+    hole.consume<span style="color: #2aa198;">(</span>z<span style="color: #2aa198;">)</span>;
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org48f8ccf" class="outline-3">
+<h3 id="org48f8ccf"><span class="section-number-3">5.3</span> 常量折叠</h3>
+<div class="outline-text-3" id="text-5-3">
+<p>
+也就是将编译时，可以直接确定值的静态变量直接赋值，也可以发生在函数中，当某个函数的返回值是多个可折叠的常量时，函数的返回值也是一个固定的。
+</p>
+</div>
+</div>
+
+<div id="outline-container-org912e1df" class="outline-3">
+<h3 id="org912e1df"><span class="section-number-3">5.4</span> 循环展开（Loop Unwingding）</h3>
+<div class="outline-text-3" id="text-5-4">
+<p>
+循环优化，将可以推理得到的结果，直接计算，这是在常量折叠上的一种拓展
+</p>
+</div>
+</div>
+
+<div id="outline-container-org4450d9e" class="outline-3">
+<h3 id="org4450d9e"><span class="section-number-3">5.5</span> Fork JVM</h3>
+<div class="outline-text-3" id="text-5-5">
+<p>
+防止jvm运行时优化，jvm无进程，只有线程，不同的进程，就代表不同的jvm。所以为防止运行时优化对测试结果的影响，就需要引入fork模式，可以通过 <code>@Fork</code> 进行设置
+</p>
+</div>
+</div>
 </div>
