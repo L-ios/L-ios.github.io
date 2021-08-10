@@ -71,7 +71,7 @@ JMH(Java Micro Benchmark Harness) 是一款专用于 Java 的微基准测试工�
 <p>
 通过 <code>gradle init</code> 创建一个 gradle java 工程
 </p>
-<pre class="example" id="orgc683a99">
+<pre class="example" id="orgc9533bc">
 $ gradle init
 Starting a Gradle Daemon, 1 busy Daemon could not be reused, use --status for details
 
@@ -219,7 +219,7 @@ BUILD SUCCESSFUL in 45s
 <p>
 通过 main 方法即可运行，运行结果如下
 </p>
-<pre class="example" id="orgf2fc825">
+<pre class="example" id="org6bd373c">
 11 8 7 7 7 7 6 7 6 42
 -------------------
 20 197 7 146 4 273 6 356 8 7
@@ -342,7 +342,7 @@ BenchmarkMode注解表示用哪一种模式来运行JMH，JMH主要提供了四�
 <p>
 如下是 <code>@BenchmarkMode(Mode.All)</code> 的运行结果，四种模式可以任意组合
 </p>
-<pre class="example" id="orgefc1685">
+<pre class="example" id="org66b7336">
 Benchmark                            (type)    Mode     Cnt      Score    Error   Units
 ListJMH.listAdd                   ArrayList   thrpt       5     50.621 ± 22.316  ops/us
 ListJMH.listAdd                  LinkedList   thrpt       5      6.461 ±  0.513  ops/us
@@ -446,7 +446,7 @@ Thread 和 Beachmark 运行的实例都是方法级线性的，也就是一个�
 <p>
 运行结果如下
 </p>
-<pre class="example" id="org6a5598e">
+<pre class="example" id="org06e32c7">
 Benchmark                        Mode  Cnt   Score   Error   Units
 JucMap.ConcurrentHashMap        thrpt    5  55.251 ± 0.879  ops/us
 JucMap.ConcurrentHashMap:read   thrpt    5  51.765 ± 0.932  ops/us
@@ -566,27 +566,27 @@ JVM会对代码进行优化，而 <code>@CompilerControl</code> 就是用于控�
 </tr>
 
 <tr>
-<td class="org-left">HS<sub>CL</sub></td>
+<td class="org-left">HS_CL</td>
 <td class="org-left">HotSpot 类加载器通过特定于实现的 MBean 进行分析</td>
 </tr>
 
 <tr>
-<td class="org-left">HS<sub>COMP</sub></td>
+<td class="org-left">HS_COMP</td>
 <td class="org-left">HotSpot JIT通过特定于实现的 MBean 进行分析</td>
 </tr>
 
 <tr>
-<td class="org-left">HS<sub>GC</sub></td>
+<td class="org-left">HS_GC</td>
 <td class="org-left">HotSpot GC 通过特定于实现的 MBean 进行分析</td>
 </tr>
 
 <tr>
-<td class="org-left">HS<sub>RT</sub></td>
+<td class="org-left">HS_RT</td>
 <td class="org-left">通过 Implementation-Specific MBean 进行 HotSpot 运行时分析</td>
 </tr>
 
 <tr>
-<td class="org-left">HS<sub>THR</sub></td>
+<td class="org-left">HS_THR</td>
 <td class="org-left">通过 Implementation-Specific MBean 进行 HotSpot 线程分析</td>
 </tr>
 
