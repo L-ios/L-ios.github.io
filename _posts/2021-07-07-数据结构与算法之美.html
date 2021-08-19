@@ -1,0 +1,1367 @@
+---
+date: 2021-07-07 23:16
+author: L-ios
+layout: post
+title: 数据结构与算法之美
+excerpt: j
+tags: 
+- s
+categories: 
+- s
+permailink: /xxx
+---
+
+<div id="outline-container-orgadc495a" class="outline-2">
+<h2 id="orgadc495a">数据结构与算法</h2>
+<div class="outline-text-2" id="text-orgadc495a">
+<dl class="org-dl">
+<dt>数据结构</dt><dd>一组数据的存储结构</dd>
+<dt>算法</dt><dd>操作数据的一组方法</dd>
+</dl>
+
+
+<p>
+数据结构是为算法服务的，算法要作用于特定的数据结构上
+</p>
+</div>
+</div>
+
+<div id="outline-container-org82c424a" class="outline-2">
+<h2 id="org82c424a">复杂度分析</h2>
+<div class="outline-text-2" id="text-org82c424a">
+<p>
+算法学习精髓
+</p>
+<dl class="org-dl">
+<dt>事后统计</dt><dd>利用监控，以及执行时间，占用内存的一系列实际测试结果分析的方式</dd>
+<dt>大O复杂度表示法</dt><dd>非真正执行的时间，而是表示代码执行时间随数据规模增长的变化趋势，也叫渐进时间复杂度</dd>
+</dl>
+</div>
+
+<div id="outline-container-orgdf367d7" class="outline-3">
+<h3 id="orgdf367d7">时间复杂度（渐进时间复杂度）</h3>
+<div class="outline-text-3" id="text-orgdf367d7">
+<ul class="org-ul">
+<li>只需关注循环执行次数最多的那一段代码</li>
+<li>加法法则（总复杂度等于量级最大的那段代码的复杂度）</li>
+<li>乘法法则-&#x2014;循环嵌套（嵌套代码的复杂度等于嵌套外复杂度的乘积）</li>
+</ul>
+
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">名称</th>
+<th scope="col" class="org-left">表示方式</th>
+<th scope="col" class="org-left">&#xa0;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">常量阶</td>
+<td class="org-left">O(1)</td>
+<td class="org-left">多项式</td>
+</tr>
+
+<tr>
+<td class="org-left">对数阶</td>
+<td class="org-left">O(logn)</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">线性阶</td>
+<td class="org-left">O(n*logn)</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">线性对数阶</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">平方阶&#x2013;K次方阶</td>
+<td class="org-left">O(n<sup>2</sup>) O(n<sup>k</sup>)</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">指数阶</td>
+<td class="org-left">O（2<sup>2</sup>）</td>
+<td class="org-left">非确定多项式</td>
+</tr>
+
+<tr>
+<td class="org-left">阶乘阶</td>
+<td class="org-left">O(n!)</td>
+<td class="org-left">非确定多项式</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+<b>备注：</b> 非确定多项式的算法问题叫做NP（Non-Deterministic Polynomial）
+</p>
+</div>
+
+<ul class="org-ul">
+<li><a id="org7875fcc"></a>O(1)<br />
+<div class="outline-text-4" id="text-org7875fcc">
+<p>
+一般情况下，不存在循环语句，递归语句的代码
+</p>
+</div>
+</li>
+<li><a id="org68ad28d"></a>O(logn) O(n*logn)<br />
+<div class="outline-text-4" id="text-org68ad28d">
+<p>
+数阶时间复杂度分析十分复杂，主要需要参考数值变化的规律，循环的step主要是以一种指数的形势进行增长
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">i</span> = 1;
+<span style="color: #859900;">while</span> <span style="color: #839496;">(</span>i &lt;= <span style="color: #268bd2;">Integer</span>.MAX_VALUE<span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    i = i &lt;&lt; 1;
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+</div>
+</li>
+<li><a id="orgaa5e3ae"></a>O(m+n) O(m*n)<br />
+<div class="outline-text-4" id="text-orgaa5e3ae">
+<p>
+这种时间复杂度是由于一个函数有m，n两个不同的两个数据规模决定的，两个数据规模互补影响。
+</p>
+</div>
+</li>
+</ul>
+</div>
+
+<div id="outline-container-orgd1067c0" class="outline-3">
+<h3 id="orgd1067c0">不同场景下的时间复杂度</h3>
+<div class="outline-text-3" id="text-orgd1067c0">
+</div>
+<ul class="org-ul">
+<li><a id="orgd0fc99b"></a>最好情况时间复杂度<br />
+<div class="outline-text-4" id="text-orgd0fc99b">
+<p>
+最理想情况下的时间复杂度
+</p>
+</div>
+</li>
+<li><a id="org1bac64c"></a>最坏情况时间复杂度<br />
+<div class="outline-text-4" id="text-org1bac64c">
+<p>
+最坏情况下的时间复杂度
+</p>
+</div>
+</li>
+<li><a id="org0b8b5b0"></a>平均情况时间复杂度<br />
+<div class="outline-text-4" id="text-org0b8b5b0">
+<p>
+平均时间复杂度也叫期望时间复杂度，针对可能存在的时间复杂度情况，经过对每种情况加权后的平均值
+</p>
+</div>
+</li>
+<li><a id="org9ddcef9"></a>均摊时间复杂度<br />
+<div class="outline-text-4" id="text-org9ddcef9">
+<p>
+均他时间复杂度主要是针对其分析方法&#x2013;摊还分析（平摊分析）：将极少数情况的时间复杂度 <b>均摊</b> 大多数的时间复杂度
+</p>
+</div>
+</li>
+</ul>
+</div>
+
+<div id="outline-container-orgd3d63ed" class="outline-3">
+<h3 id="orgd3d63ed">空间复杂度</h3>
+<div class="outline-text-3" id="text-orgd3d63ed">
+<p>
+空间复杂度也叫渐进空间复杂度，表示算法的存储空间与数据规模之间的增长关系，常见的空间复杂度有：
+</p>
+<ul class="org-ul">
+<li>O(1)</li>
+<li>O(n)</li>
+<li>O(n<sup>2</sup>)</li>
+<li>O(logn) &#x2013; 不常见</li>
+<li>O(n*logn) &#x2013; 不常见</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-org86101c1" class="outline-2">
+<h2 id="org86101c1">数组</h2>
+<div class="outline-text-2" id="text-org86101c1">
+<p>
+数组是一种线性表<sup><a id="fnr.1" class="footref" href="#fn.1">1</a></sup>数据结构，其采用了一组连续的内存空间，数组因其连续，且相同的类型，拥有随机访问的特性。
+数组的随机访问是根据“通过偏移量寻址”进行的。数组的插入，删除都会为了维护数组的连续性.
+</p>
+
+<p>
+现代CPU从内存中读取数据，会读取当前访问数据前后的数据，这样随机访问数组时，就可以利用CPU的缓存机制提高数组的访问效率。
+</p>
+
+<p>
+Java中使用最多的数组容器-&#x2014;ArrayList，当插入时，数组满了就会发生动态扩容。
+</p>
+</div>
+</div>
+
+<div id="outline-container-org5cb8cd0" class="outline-2">
+<h2 id="org5cb8cd0">链表</h2>
+<div class="outline-text-2" id="text-org5cb8cd0">
+<p>
+缓存淘汰策略
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">FIFO</td>
+<td class="org-left">First In, First Out</td>
+</tr>
+
+<tr>
+<td class="org-left">LFU</td>
+<td class="org-left">Least Frequently Used</td>
+</tr>
+
+<tr>
+<td class="org-left">LRU</td>
+<td class="org-left">Lease Recently Used</td>
+</tr>
+</tbody>
+</table>
+<p>
+如何使用链表实现 LRU？
+链表是通过指针（引用）将一组零散的内存块串联起来使用，常见的链表：
+</p>
+<ul class="org-ul">
+<li>单链表</li>
+<li>双向链表</li>
+<li>循环链表</li>
+</ul>
+
+
+<p>
+链表时通过 “指针” 将一组零散的内存块（结点）串联起来使用，每个节点记录了节点存储的数据+后继指针，链表中第一个节点叫 <b>头节点</b> ，最后一个节点叫 <b>尾节点</b> 。
+</p>
+<dl class="org-dl">
+<dt>插入</dt><dd>改变指针的指向即可插入节点，时间复杂度为 O(1)</dd>
+<dt>删除</dt><dd>同删除，但是需要在知道其前置节点，若不知，则需要 O(n)</dd>
+<dt>查询</dt><dd>因为无法使用类似数组一样的偏移量查找地址，则需要 O(n)</dd>
+</dl>
+
+
+<p>
+通过上述，描述了单链表，在单链表中，我们可以想象我们站在一个节点上时，我们在 O(1) 时间内，只能通过指针访问后继节点，通过指针对其他节点有视野屏蔽性。
+</p>
+
+<p>
+当我们需要访问前驱节点时，就需要重新遍历链表，为了解决此问题，可以在每个结点中增加一个前驱指针，用于访问上一个节点，这样的还会带来一个好处：反向遍历链表，这样就形成了双向链表
+</p>
+
+<p>
+在单链表中，当我们需要处理类似 <b>约瑟夫问题</b> 时，我们就需要加快链表的访问，或者加快从尾结点跳到头节点的速度，我们就需要将尾结点的指针指向头节点，用于形成环，这样就形成了循环链表，循环链表中，所有的节点指针都不为空，且指向链表上的节点，每个节点只有一个节点指向
+</p>
+</div>
+
+
+<div id="outline-container-org112d55d" class="outline-3">
+<h3 id="org112d55d">链表技巧</h3>
+<div class="outline-text-3" id="text-org112d55d">
+<ul class="org-ul">
+<li>指针 &amp; 引用的意思，为方便寻址</li>
+<li>防止指针丢失 &amp; 内存泄露
+<ul class="org-ul">
+<li>插入结点，链表需要先为插入结点的 next 指针赋值，再插入</li>
+<li>删除结点，需要手动释放内存（无GC）</li>
+</ul></li>
+<li>利用哨兵简化实现难度，添加无需使用的头节点，从而降低对头结点&amp;尾结点的特殊情况考虑</li>
+<li>留意边界条件处理，例如如下边界
+<ul class="org-ul">
+<li>空链表，代码是否正常工作</li>
+<li>链表只有一个结点，是否正常工作</li>
+<li>链表只有两个结点，是否正常工作</li>
+<li>逻辑代码，在处理头节点&amp;尾结点时，是否正常工作</li>
+</ul></li>
+<li>多画图</li>
+</ul>
+</div>
+</div>
+
+
+<div id="outline-container-org800123d" class="outline-3">
+<h3 id="org800123d">todo</h3>
+<div class="outline-text-3" id="text-org800123d">
+<p>
+代码： <code>[2/9]</code>
+</p>
+<ul class="org-ul">
+<li class="on"><code>[X]</code> 206.单链表反转
+单链表的反转，主要错误点在于，头节点需要赋值为null，从而才能避免陷入链表的死循环（链表形成环）
+<ul class="org-ul">
+<li class="on"><code>[X]</code> <p>
+哨兵模式
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">sentialReverse</span><span style="color: #839496;">(</span><span style="color: #268bd2;">ListNode</span> <span style="color: #6c71c4;">list</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    <span style="color: #268bd2;">ListNode</span> <span style="color: #6c71c4;">cur</span> = list.next;
+    list.next = <span style="color: #268bd2;">null</span>;
+    <span style="color: #859900;">while</span><span style="color: #2aa198;">(</span>cur != <span style="color: #268bd2;">null</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #268bd2;">ListNode</span> <span style="color: #6c71c4;">node</span> = cur;
+        cur = cur.next;
+        node.next = list.next;
+        list.next = node;
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div></li>
+<li class="on"><code>[X]</code> <p>
+非哨模式
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #859900;">public</span> <span style="color: #268bd2;">ListNode</span> <span style="color: #b58900;">reverseList</span><span style="color: #839496;">(</span><span style="color: #268bd2;">ListNode</span> <span style="color: #6c71c4;">head</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    <span style="color: #268bd2;">ListNode</span> <span style="color: #6c71c4;">cur</span> = head;
+    head = <span style="color: #268bd2;">null</span>;
+    <span style="color: #859900;">while</span> <span style="color: #2aa198;">(</span>cur != <span style="color: #268bd2;">null</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #268bd2;">ListNode</span> <span style="color: #6c71c4;">node</span> = cur;
+        cur = cur.next;
+        node.next = head;
+        head = node;
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #859900;">return</span> head;
+<span style="color: #839496;">}</span>
+</pre>
+</div></li>
+</ul></li>
+<li class="on"><code>[X]</code> 链表中环的检测
+使用快慢指针(Floyd判圈算法，龟兔赛跑算法)</li>
+<li class="off"><code>[&#xa0;]</code> 有序链表合并</li>
+<li class="off"><code>[&#xa0;]</code> 删除第倒数N个节点</li>
+<li class="off"><code>[&#xa0;]</code> 求链表的中间节点</li>
+<li class="off"><code>[&#xa0;]</code> LRU实现</li>
+<li class="off"><code>[&#xa0;]</code> 数组LRU实现</li>
+<li class="off"><code>[&#xa0;]</code> 链表回文操作</li>
+<li class="trans"><code>[-]</code> 约瑟夫问题，约瑟夫环
+<ul class="org-ul">
+<li class="on"><code>[X]</code> 暴力版本</li>
+<li class="off"><code>[&#xa0;]</code> 算法版本</li>
+</ul></li>
+</ul>
+
+
+<p>
+考虑的场景：
+</p>
+<ol class="org-ol">
+<li>链表为空</li>
+<li>只有一个节点是否正常工作</li>
+<li>只有两个节点是否正常工作</li>
+<li>删除头节点&amp;尾节点的操作是否正常</li>
+</ol>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgac387da" class="outline-2">
+<h2 id="orgac387da">栈</h2>
+<div class="outline-text-2" id="text-orgac387da">
+<p>
+栈是一种“操作受限”的线性表，只允许一段插入和删除数据，有着先进后出，后进先出的特性，且一直能一端有数据变更
+</p>
+</div>
+
+<div id="outline-container-org5230f9d" class="outline-3">
+<h3 id="org5230f9d">数组顺序栈</h3>
+<div class="outline-text-3" id="text-org5230f9d">
+<p>
+使用数组实现一个栈，这里可能需要考虑对栈的一个动态扩容
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #859900;">public</span> <span style="color: #859900;">class</span> <span style="color: #268bd2;">ArrayStack</span> <span style="color: #859900;">implements</span> <span style="color: #268bd2;">Stack</span><span style="color: #839496;">{</span>
+    <span style="color: #859900;">private</span> <span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">data</span>;
+    <span style="color: #859900;">private</span> <span style="color: #859900;">final</span> <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">size</span>;
+    <span style="color: #859900;">private</span> <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">head</span> = 0;
+
+    <span style="color: #859900;">public</span> <span style="color: #b58900;">ArrayStack</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">size</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">this</span>.size = size;
+        data = <span style="color: #859900;">new</span> <span style="color: #268bd2;">int</span><span style="color: #b58900;">[</span>size<span style="color: #b58900;">]</span>;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Override</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">push</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">i</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span>isFull<span style="color: #859900;">()</span><span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #859900;">throw</span> <span style="color: #859900;">new</span> <span style="color: #268bd2;">IllegalArgumentException</span><span style="color: #859900;">()</span>;
+        <span style="color: #b58900;">}</span>
+        data<span style="color: #b58900;">[</span>head++<span style="color: #b58900;">]</span> = i;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Override</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">int</span> <span style="color: #b58900;">pop</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span>isEmpty<span style="color: #859900;">()</span><span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #859900;">throw</span> <span style="color: #859900;">new</span> <span style="color: #268bd2;">IllegalArgumentException</span><span style="color: #859900;">()</span>;
+        <span style="color: #b58900;">}</span>
+        <span style="color: #859900;">return</span> data<span style="color: #b58900;">[</span>head--<span style="color: #b58900;">]</span>;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Override</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">boolean</span> <span style="color: #b58900;">isEmpty</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">return</span> head == 0;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Override</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">boolean</span> <span style="color: #b58900;">isFull</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">return</span> head == size;
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org2f70c2e" class="outline-3">
+<h3 id="org2f70c2e">链表栈</h3>
+<div class="outline-text-3" id="text-org2f70c2e">
+<p>
+使用链表实现一个队列，可以无限扩容
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #859900;">public</span> <span style="color: #859900;">class</span> <span style="color: #268bd2;">ListStack</span> <span style="color: #859900;">implements</span> <span style="color: #268bd2;">Stack</span><span style="color: #839496;">{</span>
+
+    <span style="color: #859900;">private</span> <span style="color: #268bd2;">Node</span> <span style="color: #6c71c4;">head</span>;
+    <span style="color: #859900;">public</span> <span style="color: #b58900;">ListStack</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        head = <span style="color: #268bd2;">null</span>;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Override</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">push</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">i</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #268bd2;">Node</span> <span style="color: #6c71c4;">node</span> = <span style="color: #859900;">new</span> <span style="color: #268bd2;">Node</span><span style="color: #b58900;">(</span>i<span style="color: #b58900;">)</span>;
+        node.next = head;
+        head = node;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Override</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">int</span> <span style="color: #b58900;">pop</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span>isEmpty<span style="color: #859900;">()</span><span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #859900;">throw</span> <span style="color: #859900;">new</span> <span style="color: #268bd2;">IllegalArgumentException</span><span style="color: #859900;">()</span>;
+        <span style="color: #b58900;">}</span>
+        <span style="color: #268bd2;">Node</span> <span style="color: #6c71c4;">node</span> = head;
+        head = head.next;
+        <span style="color: #859900;">return</span> node.val;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Override</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">boolean</span> <span style="color: #b58900;">isEmpty</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">return</span> head == <span style="color: #268bd2;">null</span>;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Override</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">boolean</span> <span style="color: #b58900;">isFull</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">return</span> <span style="color: #268bd2;">false</span>;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #859900;">class</span> <span style="color: #268bd2;">Node</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">val</span>;
+        <span style="color: #268bd2;">Node</span> <span style="color: #6c71c4;">next</span>;
+        <span style="color: #b58900;">Node</span><span style="color: #b58900;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">val</span><span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #859900;">this</span>.val = val;
+        <span style="color: #b58900;">}</span>
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org457fddb" class="outline-2">
+<h2 id="org457fddb">队列</h2>
+<div class="outline-text-2" id="text-org457fddb">
+<p>
+队列是一种“操作受限”的线性表，，有着先进先出，后进后出的特性，队尾插入，对头删除
+</p>
+</div>
+<div id="outline-container-org3632fc3" class="outline-3">
+<h3 id="org3632fc3">数组队列</h3>
+<div class="outline-text-3" id="text-org3632fc3">
+<p>
+使用数组实现队列，实际上就是将队列进行环化，成环，队列需要浪费一个数组一个单元，如下代码就是浪费了front指向的空间，判断浪费的是那个空间，可以判断队满和对空的判断条件，从而知道浪费了那个空间
+</p>
+
+<p>
+数组队列可以通过数据搬移，以实现内存的最大利用率，防止浪费
+</p>
+
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #859900;">public</span> <span style="color: #859900;">class</span> <span style="color: #268bd2;">ArrayQueue</span> <span style="color: #859900;">implements</span> <span style="color: #268bd2;">Queue</span> <span style="color: #839496;">{</span>
+    <span style="color: #859900;">private</span> <span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">data</span>;
+    <span style="color: #859900;">private</span> <span style="color: #859900;">final</span> <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">size</span>;
+    <span style="color: #859900;">private</span> <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">front</span> = 0;  <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#25351;&#21521;&#31354;</span>
+    <span style="color: #859900;">private</span> <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">back</span> = 0;  <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#23384;&#26377;&#20540;</span>
+
+    <span style="color: #859900;">public</span> <span style="color: #b58900;">ArrayQueue</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">size</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">this</span>.size = size;
+        data = <span style="color: #859900;">new</span> <span style="color: #268bd2;">int</span><span style="color: #b58900;">[</span>size<span style="color: #b58900;">]</span>;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">offer</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">i</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span><span style="color: #859900;">(</span>front + 1<span style="color: #859900;">)</span> % size == back<span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #859900;">throw</span> <span style="color: #859900;">new</span> <span style="color: #268bd2;">IllegalArgumentException</span><span style="color: #859900;">()</span>;
+        <span style="color: #b58900;">}</span>
+        data<span style="color: #b58900;">[</span>front++<span style="color: #b58900;">]</span> = i;
+        front %= size;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">int</span> <span style="color: #b58900;">get</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span>isEmpty<span style="color: #859900;">()</span><span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #859900;">throw</span> <span style="color: #859900;">new</span> <span style="color: #268bd2;">IllegalArgumentException</span><span style="color: #859900;">()</span>;
+        <span style="color: #b58900;">}</span>
+        <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">result</span> = data<span style="color: #b58900;">[</span>back++<span style="color: #b58900;">]</span>;
+        back %= size;
+        <span style="color: #859900;">return</span> result;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">boolean</span> <span style="color: #b58900;">isEmpty</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">return</span> front == back;
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgc5df139" class="outline-3">
+<h3 id="orgc5df139">链表队列</h3>
+<div class="outline-text-3" id="text-orgc5df139">
+<p>
+链表队列，也就是采用链表实现一个队列，如果内存足够大，则可以实现一个无限容量的队列，此处要注意的是tail节点的引用，一定要指向null，此处需要注意 header 和 tail的指向，防止空指针的异常，通常的边界有：
+</p>
+<ul class="org-ul">
+<li>空队列</li>
+<li>一个节点的队列</li>
+<li>两个节点</li>
+</ul>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #859900;">public</span> <span style="color: #859900;">class</span> <span style="color: #268bd2;">ListQueue</span> <span style="color: #859900;">implements</span> <span style="color: #268bd2;">Queue</span><span style="color: #839496;">{</span>
+
+    <span style="color: #859900;">private</span> <span style="color: #268bd2;">Node</span> <span style="color: #6c71c4;">tail</span>;
+    <span style="color: #859900;">private</span> <span style="color: #268bd2;">Node</span> <span style="color: #6c71c4;">header</span>;
+    <span style="color: #859900;">public</span> <span style="color: #b58900;">ListQueue</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        tail = <span style="color: #268bd2;">null</span>;
+        header = tail;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Override</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">offer</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">i</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #268bd2;">Node</span> <span style="color: #6c71c4;">node</span> = <span style="color: #859900;">new</span> <span style="color: #268bd2;">Node</span><span style="color: #b58900;">(</span>i<span style="color: #b58900;">)</span>;
+        node.next = tail;
+        tail = node;
+        <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span>header == <span style="color: #268bd2;">null</span><span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            header = node;
+        <span style="color: #b58900;">}</span>
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Override</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">int</span> <span style="color: #b58900;">get</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span>isEmpty<span style="color: #859900;">()</span><span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #859900;">throw</span> <span style="color: #859900;">new</span> <span style="color: #268bd2;">IllegalArgumentException</span><span style="color: #859900;">()</span>;
+        <span style="color: #b58900;">}</span>
+        <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">result</span> = header.val;
+        <span style="color: #268bd2;">Node</span> <span style="color: #6c71c4;">node</span> = header;
+        node.next = <span style="color: #268bd2;">null</span>;
+        header = header.next;
+        <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span>header == <span style="color: #268bd2;">null</span><span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#20854;&#23454;&#36825;&#37324;&#21487;&#20197;</span>
+            tail = <span style="color: #268bd2;">null</span>;
+        <span style="color: #b58900;">}</span>
+        <span style="color: #859900;">return</span> result;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Override</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">boolean</span> <span style="color: #b58900;">isEmpty</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">return</span> tail == header &amp;&amp; header == <span style="color: #268bd2;">null</span>;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">@Override</span>
+    <span style="color: #859900;">public</span> <span style="color: #268bd2;">boolean</span> <span style="color: #b58900;">isFull</span><span style="color: #2aa198;">()</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">return</span> <span style="color: #268bd2;">false</span>;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #859900;">class</span> <span style="color: #268bd2;">Node</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">val</span>;
+        <span style="color: #268bd2;">Node</span> <span style="color: #6c71c4;">next</span>;
+        <span style="color: #b58900;">Node</span><span style="color: #b58900;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">val</span><span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #859900;">this</span>.val = val;
+        <span style="color: #b58900;">}</span>
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org0206c29" class="outline-2">
+<h2 id="org0206c29">递归</h2>
+<div class="outline-text-2" id="text-org0206c29">
+<p>
+递归，也就是求解问题A，需要解决类A问题B，求解B问题需要类A问题C，等等，最后问题会成通用解法，然后在将问题答案汇总，形成A问题的解。此处问题化小为“递”，问题有答案汇总时为“归”，递归需要满足三个条件
+</p>
+<ol class="org-ol">
+<li>一个问题可以分解为几个子问题的解</li>
+<li>这个问题与分解之后的子问题，除了数据规模不同，求解思路完全相同</li>
+<li>存在递归终止条件</li>
+</ol>
+</div>
+
+
+<div id="outline-container-org20f09ed" class="outline-3">
+<h3 id="org20f09ed">如何写递归？</h3>
+<div class="outline-text-3" id="text-org20f09ed">
+<p>
+写出递推公式，找到终止条件
+找到如何将大问题化解为小问题的规律，并基于此写出递推公式，然后推敲终止条件，最后翻译代码。
+</p>
+
+<p>
+<b>注意</b>
+</p>
+<ul class="org-ul">
+<li>防止堆栈溢出</li>
+<li>防止重复计算</li>
+</ul>
+</div>
+</div>
+
+
+<div id="outline-container-org6e8a083" class="outline-3">
+<h3 id="org6e8a083">解递归为非递归</h3>
+<div class="outline-text-3" id="text-org6e8a083">
+<p>
+难，想不到，就没办法，迭代走起
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org6235dad" class="outline-2">
+<h2 id="org6235dad">排序</h2>
+<div class="outline-text-2" id="text-org6235dad">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">排序算法</th>
+<th scope="col" class="org-left">时间复杂度</th>
+<th scope="col" class="org-left">是否基于比较</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">冒泡，插入，选择</td>
+<td class="org-left">O(n<sup>2</sup>)</td>
+<td class="org-left">✔</td>
+</tr>
+
+<tr>
+<td class="org-left">快排，归并</td>
+<td class="org-left">O(n*log n)</td>
+<td class="org-left">✔</td>
+</tr>
+
+<tr>
+<td class="org-left">桶、计数、基数</td>
+<td class="org-left">O(n)</td>
+<td class="org-left">x</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+排序算法执行效率：
+</p>
+<ul class="org-ul">
+<li>时间复杂度
+<ul class="org-ul">
+<li>最好情况时间复杂度</li>
+<li>最坏情况时间复杂度</li>
+<li>平均情况时间复杂度</li>
+</ul></li>
+<li>时间复杂度的系数，常数、低阶</li>
+<li>比较的次数和交换的次数</li>
+<li id="内存消耗">用于衡量空间复杂度，其中O(1)空间复杂度的排序算法，称为 <b>原地排序</b></li>
+<li id="稳定性">排序算法结果排序后，相等的元素之间的先后顺序不发生改变，例如 （33， 32， 31）% 10后顺序不变</li>
+</ul>
+
+
+<p>
+稳定排序，可以用于解决一种sql排序问题，例如 sort by price, time, 则可以先对时间进行排序后，再对数组进行price的排序，
+</p>
+</div>
+
+<div id="outline-container-org2efde89" class="outline-3">
+<h3 id="org2efde89">冒泡排序</h3>
+<div class="outline-text-3" id="text-org2efde89">
+<p>
+<b>思路：</b>
+</p>
+<ol class="org-ol">
+<li>进行N次遍历数组</li>
+<li>每次遍历数组时将大的值进行下沉（从小到达排序）</li>
+<li>下沉的过程中需要使用值的交换</li>
+<li>每次遍历如果数组没有值的交换，则表示数组是有序的（优化点）</li>
+</ol>
+
+<p>
+以下是一段带优化思路的冒泡排序算法
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">bubbleSort</span><span style="color: #839496;">(</span><span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">nums</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    <span style="color: #859900;">for</span> <span style="color: #2aa198;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">i</span> = 0; i &lt; nums.<span style="color: #268bd2;">length</span>; i++<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #268bd2;">boolean</span> <span style="color: #6c71c4;">isSwap</span> = <span style="color: #268bd2;">false</span>;
+        <span style="color: #859900;">for</span> <span style="color: #b58900;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">j</span> = 0; j &lt; nums.<span style="color: #268bd2;">length</span> - i -1; j++<span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #859900;">if</span> <span style="color: #859900;">(</span>nums<span style="color: #268bd2;">[</span>j<span style="color: #268bd2;">]</span> &gt; nums<span style="color: #268bd2;">[</span>j+1<span style="color: #268bd2;">]</span><span style="color: #859900;">)</span> <span style="color: #859900;">{</span>
+                <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">temp</span> = nums<span style="color: #268bd2;">[</span>j<span style="color: #268bd2;">]</span>;
+                nums<span style="color: #268bd2;">[</span>j<span style="color: #268bd2;">]</span> = nums<span style="color: #268bd2;">[</span>j+1<span style="color: #268bd2;">]</span>;
+                nums<span style="color: #268bd2;">[</span>j+1<span style="color: #268bd2;">]</span> = temp;
+                isSwap = <span style="color: #268bd2;">true</span>;
+            <span style="color: #859900;">}</span>
+        <span style="color: #b58900;">}</span>
+        <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span><span style="color: #268bd2;">!</span>isSwap<span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #859900;">break</span>;
+        <span style="color: #b58900;">}</span>
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+<p>
+冒泡排序算法是原地排序算法，空间复杂度为 O(1)
+</p>
+
+<p>
+冒泡排序算法是稳定的排序算法，不会已有的顺序进行破坏
+</p>
+
+<p>
+在分析冒泡排序算法的时间复杂度时，可以通过计算代排序列的有序度<sup><a id="fnr.2" class="footref" href="#fn.2">2</a></sup>和逆序度来进行冒泡排序时间复杂度的分析，排序也就是对降低逆序度的一个过程
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgc82a384" class="outline-3">
+<h3 id="orgc82a384">插入排序</h3>
+<div class="outline-text-3" id="text-orgc82a384">
+<p>
+<b>思路：</b>
+</p>
+<ol class="org-ol">
+<li>遍历数组</li>
+<li>已遍历的区间为有序区间</li>
+<li>遍历的当前值基础值</li>
+<li>与有序区间中的值进行倒序比较</li>
+<li>将比基础值大的值后移动</li>
+<li>将基础值插入第一个不大于的位置</li>
+</ol>
+
+
+<p>
+<b>注意</b>
+</p>
+<ol class="org-ol">
+<li>需要两个循环进行遍历，一个顺序（外层），一个逆序（内层），才能保证是稳定的排序算法</li>
+<li>已顺序遍历的数组为有序数组</li>
+</ol>
+
+<p>
+以下是一段带优化思路的插入排序
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">insertionSort</span><span style="color: #839496;">(</span><span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">nums</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    <span style="color: #859900;">for</span> <span style="color: #2aa198;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">i</span> = 1; i &lt; nums.<span style="color: #268bd2;">length</span>; i++<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">base</span> = nums<span style="color: #b58900;">[</span>i<span style="color: #b58900;">]</span>; <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#32531;&#23384;&#25554;&#20837;&#30340;&#20540;</span>
+        <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">j</span> = i;
+        <span style="color: #859900;">for</span> <span style="color: #b58900;">(</span>; j &gt; 0 &amp;&amp; nums<span style="color: #859900;">[</span>j-1<span style="color: #859900;">]</span> &gt; base ; j--<span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#21069;&#19968;&#20010;&#33410;&#28857;&#19982;&#22522;&#30784;&#20540;&#27604;&#36739;&#65292;&#26159;&#21542;&#35201;&#21518;&#31227;</span>
+            nums<span style="color: #859900;">[</span>j<span style="color: #859900;">]</span> = nums<span style="color: #859900;">[</span>j-1<span style="color: #859900;">]</span>;
+        <span style="color: #b58900;">}</span>
+        nums<span style="color: #b58900;">[</span>j<span style="color: #b58900;">]</span> = base; <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#32531;&#23384;&#30340;&#20540;&#65292;&#25554;&#21040;&#25968;&#32452;&#20013;</span>
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+
+<ol class="org-ol">
+<li>插入排序是原地排序算法，空间复杂度为 O(1)</li>
+<li>插入排序是稳定的排序算法</li>
+<li>插入排序算法的时间复杂度
+<ul class="org-ul">
+<li>最好时间复杂度为 O(n)</li>
+<li>最坏时间复杂度为 O(n<sup>2</sup>)</li>
+<li>平均时间复杂度为 O(n<sup>2</sup>)</li>
+</ul></li>
+</ol>
+</div>
+</div>
+
+
+<div id="outline-container-org0b7ca52" class="outline-3">
+<h3 id="org0b7ca52">选择排序</h3>
+<div class="outline-text-3" id="text-org0b7ca52">
+<p>
+选择排序算法类似插入排序，也是区分已排序区间和未排序区间
+</p>
+
+<p>
+<b>思路</b>
+</p>
+<ol class="org-ol">
+<li>遍历数组</li>
+<li>遍历未排序区间，查找最小值索引</li>
+<li>未排序区间首值与最小值进行交换</li>
+</ol>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">selectionSort2</span><span style="color: #839496;">(</span><span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">nums</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    <span style="color: #859900;">for</span> <span style="color: #2aa198;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">i</span> = 0; i &lt; nums.<span style="color: #268bd2;">length</span>; i++<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">minIndex</span> = i;
+        <span style="color: #859900;">for</span> <span style="color: #b58900;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">j</span> = i+1; j &lt; nums.<span style="color: #268bd2;">length</span>; j++<span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #859900;">if</span> <span style="color: #859900;">(</span>nums<span style="color: #268bd2;">[</span>minIndex<span style="color: #268bd2;">]</span> &gt; nums<span style="color: #268bd2;">[</span>j<span style="color: #268bd2;">]</span><span style="color: #859900;">)</span> <span style="color: #859900;">{</span>
+                minIndex = j;
+            <span style="color: #859900;">}</span>
+        <span style="color: #b58900;">}</span>
+        <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span>minIndex != i<span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">temp</span> = nums<span style="color: #859900;">[</span>i<span style="color: #859900;">]</span>;
+            nums<span style="color: #859900;">[</span>i<span style="color: #859900;">]</span> = nums<span style="color: #859900;">[</span>minIndex<span style="color: #859900;">]</span>;
+            nums<span style="color: #859900;">[</span>minIndex<span style="color: #859900;">]</span> = temp;
+        <span style="color: #b58900;">}</span>
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+
+<ol class="org-ol">
+<li>选择排序是一种原地排序算法，空间复杂度为 O(1)</li>
+<li>选择排序不是一种稳定的排序算法，主要是因为每次是查找未排序元素中最小值与前面的元素进行交换，破坏了原有顺序</li>
+<li>插入排序算法的时间复杂度
+<ul class="org-ul">
+<li>最好时间复杂度为 O(n<sup>2</sup>)</li>
+<li>最坏时间复杂度为 O(n<sup>2</sup>)</li>
+<li>平均时间复杂度为 O(n<sup>2</sup>)</li>
+</ul></li>
+</ol>
+</div>
+</div>
+
+
+<div id="outline-container-org286b067" class="outline-3">
+<h3 id="org286b067">归并排序</h3>
+<div class="outline-text-3" id="text-org286b067">
+<p>
+思路：
+</p>
+<ol class="org-ol">
+<li>把需排序的数组从中间拆分成前后两部分</li>
+<li>对每部分分别进行排序（归并排序）</li>
+<li>将排好序的数组进行合并</li>
+</ol>
+
+
+<p>
+由此可见，从分解、排序和合并是一个循环；使用的就是分治思想（分而治之）。
+<b>分治是一种解决问题的处理思想，递归是一种编程技巧</b>
+</p>
+
+<p>
+归并排序是稳定的排序算法（合并数组时需要主要数组的先后顺序）
+归并排序的时间复杂度无论最好，最坏，还是平均情况都是为 O(nlogn),归并排序使用了递归的编程技巧，当分析时间复杂度时，其时间复杂度表示也是可以使用递归的形式进行表示。
+归并排序非原地排序算法，需要的空间复杂度是 O(nlogn)，归并排序主要空间消耗是在两个有序数组的合并时需要开辟一个临时空间，并且使用完成后就会被使用，所以，临时内存空间最大为n，所以空间复杂度为O(n)( <b>最大值</b> )。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-java">
+<span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">mergeSort</span><span style="color: #839496;">(</span><span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">nums</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    mergeSort<span style="color: #2aa198;">(</span>nums, 0, nums.length-1<span style="color: #2aa198;">)</span>;
+<span style="color: #839496;">}</span>
+
+<span style="color: #859900;">private</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">mergeSort</span><span style="color: #839496;">(</span><span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">nums</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">start</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">end</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    <span style="color: #859900;">if</span> <span style="color: #2aa198;">(</span>start &gt;= end<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">return</span> ;
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">middle</span> = start + <span style="color: #2aa198;">(</span>end - start<span style="color: #2aa198;">)</span> / 2 ; <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#19981;&#20889;&#25104; &#65288;start + end) / 2&#26159;&#20026;&#20102;&#38450;&#27490;&#25972;&#25968;&#28322;&#20986;</span>
+    mergeSort<span style="color: #2aa198;">(</span>nums, start, middle<span style="color: #2aa198;">)</span>;
+    mergeSort<span style="color: #2aa198;">(</span>nums, middle + 1, end<span style="color: #2aa198;">)</span>;
+    merge<span style="color: #2aa198;">(</span>nums, start, middle+1, end<span style="color: #2aa198;">)</span>;
+<span style="color: #839496;">}</span>
+
+<span style="color: #859900;">private</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">merge</span><span style="color: #839496;">(</span><span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">nums</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">lPos</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">rPos</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">rEnd</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    <span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">temp</span> = <span style="color: #859900;">new</span> <span style="color: #268bd2;">int</span><span style="color: #2aa198;">[</span>rEnd-lPos+1<span style="color: #2aa198;">]</span>; <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#38450;&#27490;&#20869;&#23384;&#28322;&#20986;</span>
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">tempIndex</span> = 0;
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">lEnd</span> = rPos -1;
+    <span style="color: #859900;">while</span> <span style="color: #2aa198;">(</span>lPos &lt;= lEnd &amp;&amp; rPos &lt;= rEnd<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span>nums<span style="color: #859900;">[</span>lPos<span style="color: #859900;">]</span> &lt;= nums<span style="color: #859900;">[</span>rPos<span style="color: #859900;">]</span><span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            temp<span style="color: #859900;">[</span>tempIndex++<span style="color: #859900;">]</span> = nums<span style="color: #859900;">[</span>lPos++<span style="color: #859900;">]</span>;
+        <span style="color: #b58900;">}</span> <span style="color: #859900;">else</span> <span style="color: #b58900;">{</span>
+            temp<span style="color: #859900;">[</span>tempIndex++<span style="color: #859900;">]</span> = nums<span style="color: #859900;">[</span>rPos++<span style="color: #859900;">]</span>;
+        <span style="color: #b58900;">}</span>
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #859900;">while</span> <span style="color: #2aa198;">(</span>lPos &lt;= lEnd<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        temp<span style="color: #b58900;">[</span>tempIndex++<span style="color: #b58900;">]</span> = nums<span style="color: #b58900;">[</span>lPos++<span style="color: #b58900;">]</span>;
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #859900;">while</span> <span style="color: #2aa198;">(</span>rPos &lt;= rEnd<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        temp<span style="color: #b58900;">[</span>tempIndex++<span style="color: #b58900;">]</span> = nums<span style="color: #b58900;">[</span>rPos++<span style="color: #b58900;">]</span>;
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #859900;">for</span> <span style="color: #2aa198;">(</span>tempIndex--; tempIndex &gt;= 0; tempIndex--, rEnd--<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>  <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#38656;&#35201;&#20808;&#20943;&#19968;</span>
+        nums<span style="color: #b58900;">[</span>rEnd<span style="color: #b58900;">]</span> = temp<span style="color: #b58900;">[</span>tempIndex<span style="color: #b58900;">]</span>;
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-org690174a" class="outline-3">
+<h3 id="org690174a">快速排序</h3>
+<div class="outline-text-3" id="text-org690174a">
+<p>
+快速排序也利用的分治的思想，思路：
+</p>
+<ol class="org-ol">
+<li>代排序数组中任意选址一个数据作为分区点（pivot）</li>
+<li>遍历数组，将小于 pivot 的数放到左边，大于 pivot的数放到右边，pivot放到中间</li>
+<li>pivot 左右两边的数组重复执行 步骤2 （终止条件类似归并排序）</li>
+</ol>
+
+
+<p>
+<b>与归并排序的不同</b>
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">排序算法</th>
+<th scope="col" class="org-left">排序过程</th>
+<th scope="col" class="org-left">思路</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">归并排序</td>
+<td class="org-left">自下而上</td>
+<td class="org-left">先分区，再排序</td>
+</tr>
+
+<tr>
+<td class="org-left">快速排序</td>
+<td class="org-left">自上而下</td>
+<td class="org-left">先排序，再分区</td>
+</tr>
+</tbody>
+</table>
+
+
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">quickSort</span><span style="color: #839496;">(</span><span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">nums</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    quickSort<span style="color: #2aa198;">(</span>nums, 0, nums.length-1<span style="color: #2aa198;">)</span>;
+<span style="color: #839496;">}</span>
+
+<span style="color: #859900;">public</span> <span style="color: #268bd2;">void</span> <span style="color: #b58900;">quickSort</span><span style="color: #839496;">(</span><span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">nums</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">start</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">end</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    <span style="color: #859900;">if</span> <span style="color: #2aa198;">(</span>start &gt;= end<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">return</span>;
+    <span style="color: #2aa198;">}</span>
+
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">pivotIndex</span> = partition<span style="color: #2aa198;">(</span>nums, start, end<span style="color: #2aa198;">)</span>;
+    quickSort<span style="color: #2aa198;">(</span>nums, start, pivotIndex-1<span style="color: #2aa198;">)</span>;
+    quickSort<span style="color: #2aa198;">(</span>nums, pivotIndex+1, end<span style="color: #2aa198;">)</span>;
+<span style="color: #839496;">}</span>
+
+<span style="color: #859900;">public</span> <span style="color: #268bd2;">int</span> <span style="color: #b58900;">partition</span><span style="color: #839496;">(</span><span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">nums</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">start</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">end</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">pivot</span> = nums<span style="color: #2aa198;">[</span>end<span style="color: #2aa198;">]</span>;
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">i</span> = start;
+    <span style="color: #859900;">for</span> <span style="color: #2aa198;">(</span><span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">j</span> = i; j &lt; <span style="color: #268bd2;">end</span>; j++<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#37325;&#28857;&#65306;&#36208;&#21040;end&#21069;&#19968;&#20010;&#28857;</span>
+        <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span>nums<span style="color: #859900;">[</span>j<span style="color: #859900;">]</span> &lt; pivot<span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">temp</span> = nums<span style="color: #859900;">[</span>i<span style="color: #859900;">]</span>;
+            nums<span style="color: #859900;">[</span>i<span style="color: #859900;">]</span> = nums<span style="color: #859900;">[</span>j<span style="color: #859900;">]</span>;
+            nums<span style="color: #859900;">[</span>j<span style="color: #859900;">]</span> = temp;
+            i++;
+        <span style="color: #b58900;">}</span>
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">temp</span> = nums<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span>;
+    nums<span style="color: #2aa198;">[</span>i<span style="color: #2aa198;">]</span> = nums<span style="color: #2aa198;">[</span>end<span style="color: #2aa198;">]</span>;
+    nums<span style="color: #2aa198;">[</span>end<span style="color: #2aa198;">]</span> = temp;
+    <span style="color: #859900;">return</span> i;
+<span style="color: #839496;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgdcbcaf0" class="outline-3">
+<h3 id="orgdcbcaf0">线性排序</h3>
+<div class="outline-text-3" id="text-orgdcbcaf0">
+<p>
+线性排序主要说的是时间复杂度为 O(n) 的排序算法：
+</p>
+<ul class="org-ul">
+<li>桶排序</li>
+<li>计数排序</li>
+<li>基数排序</li>
+</ul>
+</div>
+</div>
+
+
+<div id="outline-container-org0dacfea" class="outline-3">
+<h3 id="org0dacfea">桶排序（Bucket sort）</h3>
+<div class="outline-text-3" id="text-org0dacfea">
+<p>
+思路：
+</p>
+<ol class="org-ol">
+<li>待排数据拆分到几个有序的桶中</li>
+<li>每个桶再单独进行排序（可以使用快速排序）</li>
+<li>将已排序桶中数据进行合并取出</li>
+<li>若出现单桶数据量过大，可以进一步拆分</li>
+</ol>
+
+
+<p>
+适用场景：
+</p>
+<ul class="org-ul">
+<li>数据量比较大</li>
+<li>区间排序即可的场景</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgfa0a1b8" class="outline-3">
+<h3 id="orgfa0a1b8">计数排序</h3>
+<div class="outline-text-3" id="text-orgfa0a1b8">
+<p>
+计数排序是桶排序的一种特殊情况，当待排数组的值范围已知为 <b>0~k</b> ，且不大时，可以将数据拆分为k个桶，拆分完成后合并即可，无须排序
+</p>
+
+<p>
+<b>缺点 or 限制条件</b>
+</p>
+<ul class="org-ul">
+<li>值范围需为非负整数</li>
+<li>值范围不满足非负整数，则需要调整</li>
+<li>待排数值的值范围需要远远小于待排数据量，才能体现优势</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org57a31f8" class="outline-3">
+<h3 id="org57a31f8">基数排序 （Radix sort）</h3>
+<div class="outline-text-3" id="text-org57a31f8">
+<p>
+基数排序对待排序的数据要求较高，需要将数据进行拆分比较，且后比较的数据比先比较的数据优先级高，拆分后的数据取值范围较小，需要让排序算法保持稳定排序
+</p>
+
+<ul class="org-ul">
+<li>需要对数据进行有效分割，无法分割则需要补位</li>
+<li>分割后的数据有递进关系</li>
+<li>分割的数据数值范围小</li>
+<li>每位的排序都是稳定排序</li>
+</ul>
+</div>
+</div>
+
+
+<div id="outline-container-orgee79fd4" class="outline-3">
+<h3 id="orgee79fd4">排序算法总结</h3>
+<div class="outline-text-3" id="text-orgee79fd4">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">算法</th>
+<th scope="col" class="org-left">时间复杂度</th>
+<th scope="col" class="org-left">稳定排序</th>
+<th scope="col" class="org-left">原地排序</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">冒泡排序</td>
+<td class="org-left">O(n<sup>2</sup>)</td>
+<td class="org-left">✔</td>
+<td class="org-left">✔</td>
+</tr>
+
+<tr>
+<td class="org-left">插入排序</td>
+<td class="org-left">O(n<sup>2</sup>)</td>
+<td class="org-left">✔</td>
+<td class="org-left">✔</td>
+</tr>
+
+<tr>
+<td class="org-left">选择排序</td>
+<td class="org-left">O(n<sup>2</sup>)</td>
+<td class="org-left">✖</td>
+<td class="org-left">✔</td>
+</tr>
+
+<tr>
+<td class="org-left">快速排序</td>
+<td class="org-left">O(n*logn)</td>
+<td class="org-left">✖</td>
+<td class="org-left">✔</td>
+</tr>
+
+<tr>
+<td class="org-left">归并排序</td>
+<td class="org-left">O(n*logn)</td>
+<td class="org-left">✔</td>
+<td class="org-left">✖</td>
+</tr>
+
+<tr>
+<td class="org-left">计数排序</td>
+<td class="org-left">O(n + k) k是数据范围</td>
+<td class="org-left">✔</td>
+<td class="org-left">✖</td>
+</tr>
+
+<tr>
+<td class="org-left">桶排序</td>
+<td class="org-left">O(n)</td>
+<td class="org-left">✔</td>
+<td class="org-left">✖</td>
+</tr>
+
+<tr>
+<td class="org-left">基数排序</td>
+<td class="org-left">O(dn) d为维度</td>
+<td class="org-left">✔</td>
+<td class="org-left">✖</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+由于线性排序算法对数据要求比较高，所以一般都会采用非线性排序算法、
+</p>
+</div>
+
+<ul class="org-ul">
+<li><a id="orgff76f0c"></a>快速排序优化<br />
+<div class="outline-text-4" id="text-orgff76f0c">
+<p>
+快速排序理想分区点： <b>被分区点分开的两个分区，数据规模几乎相等，所以分区点需要为待排序数据的中值最佳</b>
+</p>
+
+<dl class="org-dl">
+<dt>三数取中法</dt><dd>首、尾、中，分别取出一个数，对比大小，取中间值作为分区点；这是一种数学概率的问题，数据量越大，中值越准确</dd>
+<dt>随机法</dt><dd>待排数据中，随机选择一个作为分区点，这样也无法防止时间复杂度退化为 <b>O(n<sup>2</sup>)</b> ,只能从概率的角度来说，降低了退化的概率</dd>
+</dl>
+</div>
+</li>
+</ul>
+</div>
+</div>
+
+
+<div id="outline-container-org7e99847" class="outline-2">
+<h2 id="org7e99847">查找</h2>
+<div class="outline-text-2" id="text-org7e99847">
+</div>
+<div id="outline-container-orgb68f5da" class="outline-3">
+<h3 id="orgb68f5da">二分查找</h3>
+<div class="outline-text-3" id="text-orgb68f5da">
+<p>
+二分查找是一种简单易懂快速查找算法，二分查找针对的是一个有序的数据集合，查找思想类似分治思想，每次都通过与区间的中间元素对比，将待查找的区间缩小为之前的一半，直到找到要查找的元素，或者区间被缩小为0
+时间复杂度为 O(logn)
+</p>
+</div>
+
+<ul class="org-ul">
+<li><a id="org37eb41a"></a>实现（递归&amp;非递归）<br />
+<div class="outline-text-4" id="text-org37eb41a">
+<p>
+数组中无重复元素
+</p>
+<ul class="org-ul">
+<li><p>
+递归实现
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #859900;">public</span> <span style="color: #859900;">static</span> <span style="color: #268bd2;">int</span> <span style="color: #b58900;">bsearch</span><span style="color: #839496;">(</span><span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">nums</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">target</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    <span style="color: #859900;">return</span> bsearch<span style="color: #2aa198;">(</span>nums, target, 0, nums.length-1<span style="color: #2aa198;">)</span>;
+<span style="color: #839496;">}</span>
+
+<span style="color: #859900;">private</span> <span style="color: #859900;">static</span> <span style="color: #268bd2;">int</span> <span style="color: #b58900;">bsearch</span><span style="color: #839496;">(</span><span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">nums</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">target</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">start</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">end</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">if (!(start &lt;= end)) return -1;</span>
+    <span style="color: #859900;">if</span> <span style="color: #2aa198;">(</span>start &gt; end<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span> <span style="color: #586e75; font-style: italic;">// </span><span style="color: #586e75; font-style: italic;">&#36825;&#37324;&#20026;&#32456;&#27490;&#26465;&#20214;&#20043;&#19968;&#65292;&#20063;&#26159;&#38750;&#36882;&#24402;&#29256;&#26412;&#30340;while&#26465;&#20214;</span>
+        <span style="color: #859900;">return</span> -1;
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">mid</span> = start + <span style="color: #2aa198;">(</span><span style="color: #b58900;">(</span>end - start<span style="color: #b58900;">)</span> &gt;&gt; 2<span style="color: #2aa198;">)</span>;
+    <span style="color: #859900;">if</span> <span style="color: #2aa198;">(</span>nums<span style="color: #b58900;">[</span>mid<span style="color: #b58900;">]</span> == target<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">return</span> mid;
+    <span style="color: #2aa198;">}</span> <span style="color: #859900;">else</span> <span style="color: #859900;">if</span> <span style="color: #2aa198;">(</span>nums<span style="color: #b58900;">[</span>mid<span style="color: #b58900;">]</span> &gt; target<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">return</span> bsearch<span style="color: #b58900;">(</span>nums, target, start, mid-1<span style="color: #b58900;">)</span>;
+    <span style="color: #2aa198;">}</span> <span style="color: #859900;">else</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #859900;">return</span> bsearch<span style="color: #b58900;">(</span>nums, target, mid+1, end<span style="color: #b58900;">)</span>;
+    <span style="color: #2aa198;">}</span>
+<span style="color: #839496;">}</span>
+</pre>
+</div></li>
+<li><p>
+非递归实现
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #859900;">public</span> <span style="color: #859900;">static</span> <span style="color: #268bd2;">int</span> <span style="color: #b58900;">bsearch</span><span style="color: #839496;">(</span><span style="color: #268bd2;">int</span><span style="color: #2aa198;">[]</span> <span style="color: #6c71c4;">nums</span>, <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">target</span><span style="color: #839496;">)</span> <span style="color: #839496;">{</span>
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">start</span> = 0;
+    <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">end</span> = nums.length -1;
+
+    <span style="color: #859900;">while</span> <span style="color: #2aa198;">(</span>start &lt;= end<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+        <span style="color: #268bd2;">int</span> <span style="color: #6c71c4;">mid</span> = start + <span style="color: #b58900;">(</span><span style="color: #859900;">(</span>end - start<span style="color: #859900;">)</span> &gt;&gt; 1<span style="color: #b58900;">)</span>;
+        <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span>nums<span style="color: #859900;">[</span>mid<span style="color: #859900;">]</span> == target<span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            <span style="color: #859900;">return</span> mid;
+        <span style="color: #b58900;">}</span> <span style="color: #859900;">else</span> <span style="color: #859900;">if</span> <span style="color: #b58900;">(</span>nums<span style="color: #859900;">[</span>mid<span style="color: #859900;">]</span> &gt; target<span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+            end = mid -1;
+        <span style="color: #b58900;">}</span> <span style="color: #859900;">else</span> <span style="color: #b58900;">{</span>
+            start = mid + 1;
+        <span style="color: #b58900;">}</span>
+    <span style="color: #2aa198;">}</span>
+    <span style="color: #859900;">return</span> -1;
+<span style="color: #839496;">}</span>
+</pre>
+</div></li>
+</ul>
+
+
+<p>
+二分查找需要先会实现递归版本，然后在实现非递归版本，并从递归版本理解非递归版本，有利于判断终止条件
+</p>
+
+<p>
+终止条件为 <code>start &gt; end</code> ,则由于 mid已经判断过，则进行忽略不猜测，加速收敛
+<b>重点：</b>
+</p>
+<ol class="org-ol">
+<li>循环退出条件（循环继续的条件）</li>
+<li>mid的取值，若为 <code>(start+end)/2</code> 则可能发生内存溢出</li>
+<li>start 与 end 的更新，需要跳过mid值，
+<ol class="org-ol">
+<li>用于加速收敛</li>
+<li>防止死循环</li>
+</ol></li>
+</ol>
+</div>
+</li>
+
+<li><a id="org0ffedf0"></a>局限性<br />
+<div class="outline-text-4" id="text-org0ffedf0">
+<ul class="org-ul">
+<li>查找的数据必须数组，顺序表</li>
+<li>数据必须是有序的</li>
+<li>小数据量不适用</li>
+<li>大数据也不适用（因为需要数据量连续，所以大数量的数据二分查找就会十分浪费空间）</li>
+</ul>
+</div>
+</li>
+
+<li><a id="org2089e9b"></a>二分查找变形<br />
+<div class="outline-text-4" id="text-org2089e9b">
+<ul class="org-ul">
+<li><p>
+查找第一个值等于给定值的元素
+</p>
+<div class="org-src-container">
+<pre class="src src-java">
+</pre>
+</div></li>
+<li>查找最后一个值等于给定值的元素</li>
+<li>查找第一个大于等于给定值的元素</li>
+<li>查找最后一个小于等于给定值的元素</li>
+<li>循环有序数组，例如 [4, 5, 6, 1, 2, 3] 中查找 <b>1</b> 的位置</li>
+</ul>
+
+<p>
+<b>细节</b> ：
+</p>
+<ul class="org-ul">
+<li>终止条件</li>
+<li>区间上下界更新</li>
+<li>返回值选择</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+
+
+<div id="outline-container-org255af29" class="outline-2">
+<h2 id="org255af29">Q&amp;A</h2>
+<div class="outline-text-2" id="text-org255af29">
+</div>
+<div id="outline-container-org84762a9" class="outline-3">
+<h3 id="org84762a9">快速排序日志</h3>
+<div class="outline-text-3" id="text-org84762a9">
+<p>
+现在你有 10 个接口访问日志文件，每个日志文件大小约 300MB，每个文件里的日志都是按照时间戳从小到大排序的。你希望将这 10 个较小的日志文件，合并为 1 个日志文件，合并之后的日志仍然按照时间戳从小到大排列。如果处理上述排序任务的机器内存只有 1GB，你有什么好的解决思路，能“快速”地将这 10 个日志文件合并吗？
+</p>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1">1</a></sup> <div class="footpara"><p class="footpara">
+线性表：数据排列像一条线，每个节点只有前和后两个方向；与之相反的是非线性表：二叉树，图，堆等
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.2" class="footnum" href="#fnr.2">2</a></sup> <div class="footpara"><p class="footpara">
+有序度： 将数组中的数进行顺序组合，符合 a[i] &lt; a[j](i&lt;j) 条件的元素对个数，一个有序的数组，有序度为 n*(n-1)/2,也成其为满有序度，逆序度与之相反
+</p></div></div>
+
+
+</div>
+</div>

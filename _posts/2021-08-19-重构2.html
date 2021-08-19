@@ -1,0 +1,75 @@
+---
+date: 2021-08-19 23:12
+author: L-ios
+layout: post
+title: 重构2心得
+excerpt: 《重构：改善既有代码的设计（第二版）》读书心得
+tags: 
+- code
+categories: 
+- code
+permailink: /xxx
+---
+
+<div id="outline-container-orgb29570d" class="outline-2">
+<h2 id="orgb29570d">重构初体验</h2>
+<div class="outline-text-2" id="text-orgb29570d">
+<p>
+如果要给一个程序添加一个特性，但是发现代码因缺乏良好的结构而不易于进行修改，那就先重构那个程序，使其比较容易添加该特性，然后再添加该特性
+</p>
+
+<p>
+重构前，先检查自己是否有一套可靠的测试集，而这些测试必须有自我检验能力
+  这里可以在一些函数的地方增加assert判断（在不好写测试的前提下）
+</p>
+
+<p>
+书中的实例是js，js可以编写内联函数<sup><a id="fnr.1" class="footref" href="#fn.1">1</a></sup>，所以书中进行实例的时候，重构就在原函数中进行一些重构手法
+</p>
+<ol class="org-ol">
+<li>提取出来的函数就在原函数中（extract function <code>提炼函数</code> ）</li>
+<li>函数对外表现不变</li>
+<li>使用 <code>以查询替代临时变量</code> 将一些dict的变量访问替换掉，再利用 <code>内联变量</code> 完全替换临时变量的访问</li>
+<li><code>改变函数声明</code> 提升函数的可读性，移除无效参数，重新整理参数</li>
+<li><code>拆分循环</code> <sup><a id="fnr.2" class="footref" href="#fn.2">2</a></sup>剥离复杂业务，实现小代码块实现单一功能，并有利于后期的提炼函数</li>
+<li><code>移动语句</code> 将函数中的功能进行聚合</li>
+<li><code>搬移函数</code> 提升函数复用性，为实现同一功能的函数不至于太分散</li>
+<li><code>多态替换条件表达式</code> 提升代码扩展性，易读性，功能聚合性</li>
+<li><code>管道取代循环</code> 提升代码可读性，也是拆分循环的一种</li>
+<li><code>工厂函数取代构造函数</code> 提升代码可读性，降低代码偶合性</li>
+</ol>
+</div>
+
+
+<div id="outline-container-org79d18f8" class="outline-3">
+<h3 id="org79d18f8">心得</h3>
+<div class="outline-text-3" id="text-org79d18f8">
+<p>
+在js中可以编写内联函数<sup><a id="fnr.1.100" class="footref" href="#fn.1">1</a></sup>的编程语言中，可以利用 <code>提炼函数</code> 的技巧，快速提取内联函数，实现功能聚合
+</p>
+
+<p>
+<code>以多态替换条件表达式</code> 可以解耦一些具体实现，提升功能边界划分，和 <code>工厂函数取代构造函数</code> 结合使用效果最佳
+</p>
+
+<p>
+<code>管道取代循环</code> 主要是使用流式编程，如同抽取函数一样提升代码可读性
+</p>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1">1</a></sup> <div class="footpara"><p class="footpara">
+函数中写函数
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.2" class="footnum" href="#fnr.2">2</a></sup> <div class="footpara"><p class="footpara">
+拆分循环可能会从表面上降低代码的运行效率，但是实际感知比较小
+</p></div></div>
+
+
+</div>
+</div>
