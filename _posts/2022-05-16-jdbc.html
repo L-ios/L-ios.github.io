@@ -1,0 +1,131 @@
+---
+date: 2022-05-16 22:47
+author: L-ios
+layout: post
+title: JDBC 学习
+excerpt: JDBC 学习，了解JDBC的抽象机制
+tags: 
+- jdbc
+categories: 
+- jdbc
+permailink: https://l-ios.github.io
+---
+
+<div id="outline-container-org6efe2bd" class="outline-2">
+<h2 id="org6efe2bd">JDBC 体验</h2>
+<div class="outline-text-2" id="text-org6efe2bd">
+<p>
+JDBC<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>（Java Database Connectivity） 是Java语言中提供的访问关系型数据的接口。使用JDBC操作数据源大致步骤如下
+</p>
+<ol class="org-ol">
+<li>加载数据库驱动，主要是为了调用 <code>DriverManager#registerDriver()</code> 方法进行驱动注册，事实上是无须注册的<sup><a id="fnr.2" class="footref" href="#fn.2" role="doc-backlink">2</a></sup></li>
+<li>获取数据库链接，这里可以通过 <code>DriverManager#getconnection()</code> / <code>DataSource#getconnection()</code> 获取连接</li>
+<li>执行 SQL 语句</li>
+<li>检索 SQL 执行结果</li>
+<li>关闭连接</li>
+</ol>
+</div>
+
+<div id="outline-container-orgdf48613" class="outline-3">
+<h3 id="orgdf48613">获取数据源连接</h3>
+<div class="outline-text-3" id="text-orgdf48613">
+<p>
+JDBC 中与数据源建立连接是获取 Connection ，获取 Connection 有两种方式
+</p>
+<ol class="org-ol">
+<li><p>
+通过 <code>DriverManager</code> （JDBC 1.0）获取连接
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">Connection</span> <span style="color: #e7c547;">connection</span>
+    = DriverManager.getConnection<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"jdbc:hsqldb:menm:mybatis"</span>, <span style="color: #70c0b1;">"username"</span>, <span style="color: #70c0b1;">"password"</span><span style="color: #eaeaea;">)</span>;
+</pre>
+</div>
+
+<p>
+当应用第一次通过 url 获取连接时，DriverManager 会自动加载 CLASSPATH 下的所有 JDBC 驱动<sup><a id="fnr.3" class="footref" href="#fn.3" role="doc-backlink">3</a></sup>。
+</p></li>
+
+<li>利用 <code>DataSource</code> (JDBC 2.0)获取连接，其提供了更多底层数据源相关的细节。JDK 没有提供 Datasource的具体实现，具体实现由启动类，或者连接池框架提供，例如
+<ul class="org-ul">
+<li>c3p0</li>
+<li>hikari</li>
+<li>MyBatis 3 中的 DataSource 实现 <code>UnpooledDataSource</code> （由 <code>DataSourceFactory</code> 使用工厂模式创建）</li>
+<li>一些JDBC驱动也会默认提供一些DataSource的实现</li>
+</ul></li>
+
+<li>JDBC 中定义了两个 DataSource 接口重要的扩展
+<ol class="org-ol">
+<li>ConnectionPoolDataSource 支持缓存和复用 Connection 对象，从而能够很大程度上提升应用性能和伸缩性</li>
+<li>XADataSource 返回的 Connection 支持分布式事务</li>
+</ol></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orga4c69b2" class="outline-3">
+<h3 id="orga4c69b2">执行SQL并获取结果</h3>
+<div class="outline-text-3" id="text-orga4c69b2">
+<p>
+Connection 是 JDBC 对数据连接的抽象，我们可以通过一个未关闭的连接执行查询和更新操作。各个 JDBC 的实现对一些特性（SQL:2003）的支持是不同的，所以 JDBC 提供了 DatabaseMetadata 接口辅助用确定数据源是否支持某一特性；也可通过转义语法，获取JDBC的非标准特性（JDBC 实现者提供）
+</p>
+
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">Statement</span> <span style="color: #e7c547;">statement</span> = connection.createStatement<span style="color: #eaeaea;">()</span>;
+<span style="color: #7aa6da;">ResultSet</span> <span style="color: #e7c547;">resultSet</span> = statement.executeQuery<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"SELECT * FROM user"</span><span style="color: #eaeaea;">)</span>;
+ResultSetMetaData = metaData = resultSet.getMetaData<span style="color: #eaeaea;">()</span>;
+<span style="color: #b9ca4a;">while</span><span style="color: #eaeaea;">(</span>resultSet.next<span style="color: #70c0b1;">()</span><span style="color: #eaeaea;">)</span> <span style="color: #eaeaea;">{</span>
+    <span style="color: #b9ca4a;">for</span><span style="color: #70c0b1;">(</span><span style="color: #7aa6da;">int</span> <span style="color: #e7c547;">i</span> = 0; i &lt;= metaData.getColumnCout<span style="color: #e7c547;">()</span>; i++<span style="color: #70c0b1;">)</span> <span style="color: #70c0b1;">{</span>
+        <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#21015;&#21517;</span>
+        <span style="color: #7aa6da;">String</span> <span style="color: #e7c547;">columnName</span> = metaData.getColunmName<span style="color: #e7c547;">(</span>i<span style="color: #e7c547;">)</span>;
+        <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#24403;&#21069;&#21015;&#30340;&#20540;</span>
+        <span style="color: #7aa6da;">String</span> <span style="color: #e7c547;">columnValue</span> = resultSet.getString<span style="color: #e7c547;">(</span>columnName<span style="color: #e7c547;">)</span>;
+    <span style="color: #70c0b1;">}</span>
+<span style="color: #eaeaea;">}</span>
+
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">statement close</span>
+<span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">connection close</span>
+</pre>
+</div>
+
+<p>
+步骤：
+</p>
+<ol class="org-ol">
+<li>获取 Connection</li>
+<li>从 Connection 中获取 Statement（PreparedStatement 或者 CallableStatement）</li>
+<li>使用 Statement 执行 SQL
+<ul class="org-ul">
+<li>executeQuery() 查询</li>
+<li>executeBatch() 更新</li>
+<li>execute() 统一操作，这里需要显式调用 <code>Satement.getResultSet()</code> 获取 ResultSet</li>
+</ul></li>
+<li>利用 Statement 执行 SQL 后，获取 ResultSet进行查询的数据处理</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-org00fba48" class="outline-2">
+<h2 id="org00fba48">JDBC API</h2>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1" role="doc-backlink">1</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+<a href="https://download.oracle.com/otndocs/jcp/jdbc-4_2-mrel2-spec/index.html">JDBC 4.2 规范文档</a>
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.2" class="footnum" href="#fnr.2" role="doc-backlink">2</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+当调用 <code>DriverManager#getConnection</code> 时，DriverManager 被 classloader 加载会执行静态代码块，就会通过 SPI 加载 classpath 下所有的 Driver 实现类，就间接的调用了驱动注册函数， <code>Class.forName</code> 就是为了加载 Driver 实现类时，执行静态代码块时调用 <code>DriverManager#registerDriver</code> 方法注册驱动
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.3" class="footnum" href="#fnr.3" role="doc-backlink">3</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+<code>Class.from("com.mysql.cj.jdbc.Driver")</code> 为显式加载驱动类（这里是通过 static 代码块执行 <code>DriverManager.registerDriver</code> 进行驱动注册），JDBC 4.0后无需显式加载，jdk会通过 SPI
+</p></div></div>
+
+
+</div>
+</div>
