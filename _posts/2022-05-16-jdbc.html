@@ -11,9 +11,9 @@ categories:
 permailink: https://l-ios.github.io
 ---
 
-<div id="outline-container-org6efe2bd" class="outline-2">
-<h2 id="org6efe2bd">JDBC 体验</h2>
-<div class="outline-text-2" id="text-org6efe2bd">
+<div id="outline-container-org41d9112" class="outline-2">
+<h2 id="org41d9112">JDBC 体验</h2>
+<div class="outline-text-2" id="text-org41d9112">
 <p>
 JDBC<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>（Java Database Connectivity） 是Java语言中提供的访问关系型数据的接口。使用JDBC操作数据源大致步骤如下
 </p>
@@ -26,9 +26,9 @@ JDBC<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></s
 </ol>
 </div>
 
-<div id="outline-container-orgdf48613" class="outline-3">
-<h3 id="orgdf48613">获取数据源连接</h3>
-<div class="outline-text-3" id="text-orgdf48613">
+<div id="outline-container-org963582f" class="outline-3">
+<h3 id="org963582f">获取数据源连接</h3>
+<div class="outline-text-3" id="text-org963582f">
 <p>
 JDBC 中与数据源建立连接是获取 Connection ，获取 Connection 有两种方式
 </p>
@@ -63,9 +63,9 @@ JDBC 中与数据源建立连接是获取 Connection ，获取 Connection 有两
 </div>
 </div>
 
-<div id="outline-container-orga4c69b2" class="outline-3">
-<h3 id="orga4c69b2">执行SQL并获取结果</h3>
-<div class="outline-text-3" id="text-orga4c69b2">
+<div id="outline-container-orgb752ee1" class="outline-3">
+<h3 id="orgb752ee1">执行SQL并获取结果</h3>
+<div class="outline-text-3" id="text-orgb752ee1">
 <p>
 Connection 是 JDBC 对数据连接的抽象，我们可以通过一个未关闭的连接执行查询和更新操作。各个 JDBC 的实现对一些特性（SQL:2003）的支持是不同的，所以 JDBC 提供了 DatabaseMetadata 接口辅助用确定数据源是否支持某一特性；也可通过转义语法，获取JDBC的非标准特性（JDBC 实现者提供）
 </p>
@@ -76,9 +76,9 @@ Connection 是 JDBC 对数据连接的抽象，我们可以通过一个未关闭
 ResultSetMetaData = metaData = resultSet.getMetaData<span style="color: #eaeaea;">()</span>;
 <span style="color: #b9ca4a;">while</span><span style="color: #eaeaea;">(</span>resultSet.next<span style="color: #70c0b1;">()</span><span style="color: #eaeaea;">)</span> <span style="color: #eaeaea;">{</span>
     <span style="color: #b9ca4a;">for</span><span style="color: #70c0b1;">(</span><span style="color: #7aa6da;">int</span> <span style="color: #e7c547;">i</span> = 0; i &lt;= metaData.getColumnCout<span style="color: #e7c547;">()</span>; i++<span style="color: #70c0b1;">)</span> <span style="color: #70c0b1;">{</span>
-        <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#21015;&#21517;</span>
+        <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">\350\216\267\345\217\226\345\210\227\345\220\215</span>
         <span style="color: #7aa6da;">String</span> <span style="color: #e7c547;">columnName</span> = metaData.getColunmName<span style="color: #e7c547;">(</span>i<span style="color: #e7c547;">)</span>;
-        <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">&#33719;&#21462;&#24403;&#21069;&#21015;&#30340;&#20540;</span>
+        <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">\350\216\267\345\217\226\345\275\223\345\211\215\345\210\227\347\232\204\345\200\274</span>
         <span style="color: #7aa6da;">String</span> <span style="color: #e7c547;">columnValue</span> = resultSet.getString<span style="color: #e7c547;">(</span>columnName<span style="color: #e7c547;">)</span>;
     <span style="color: #70c0b1;">}</span>
 <span style="color: #eaeaea;">}</span>
@@ -109,6 +109,308 @@ ResultSetMetaData = metaData = resultSet.getMetaData<span style="color: #eaeaea;
 
 <div id="outline-container-org00fba48" class="outline-2">
 <h2 id="org00fba48">JDBC API</h2>
+<div class="outline-text-2" id="text-org00fba48">
+<p>
+JDBC API (Java Database Connetivity) 主要是 Java 提供的访问关系型数据库的接口。不同的数据库操作有不同的实现，主要包名为 <code>java.sql</code> 和 <code>javax.sql</code> ，在 java11 的 java.sql module 中。
+</p>
+<dl class="org-dl">
+<dt>java.sql</dt><dd>最初的 JDBC 定义，涵盖JDBC核心的API</dd>
+<dt>javax.sql</dt><dd>JDBC 2.0 提供的可选包，主要是对 java.sql 的一些扩展</dd>
+</dl>
+</div>
+
+<div id="outline-container-orgda05e3f" class="outline-3">
+<h3 id="orgda05e3f">java.sql</h3>
+<div class="outline-text-3" id="text-orgda05e3f">
+<p>
+java.sql是最初的 JDBC 定义，其中涵盖了JDBC核心API，包含一些接口、驱动类、异常和枚举类。
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">数据类型</th>
+<th scope="col" class="org-left">驱动</th>
+<th scope="col" class="org-left">API</th>
+<th scope="col" class="org-left">枚举</th>
+<th scope="col" class="org-left">异常</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Array</td>
+<td class="org-left">Driver</td>
+<td class="org-left">Wrapper</td>
+<td class="org-left">SQLType</td>
+<td class="org-left">BatchUpdateException</td>
+</tr>
+
+<tr>
+<td class="org-left">Blob</td>
+<td class="org-left">DriverAction</td>
+<td class="org-left">Connection</td>
+<td class="org-left">JDBCType</td>
+<td class="org-left">DataTruncation</td>
+</tr>
+
+<tr>
+<td class="org-left">Clob</td>
+<td class="org-left">DriverManager</td>
+<td class="org-left">Statement</td>
+<td class="org-left">Types</td>
+<td class="org-left">SQLClientInfoException</td>
+</tr>
+
+<tr>
+<td class="org-left">Date</td>
+<td class="org-left">DriverPropertyInfo</td>
+<td class="org-left">CallableStatement</td>
+<td class="org-left">RowIdLifeTime</td>
+<td class="org-left">SQLDataException</td>
+</tr>
+
+<tr>
+<td class="org-left">NClob</td>
+<td class="org-left">SQLPermission</td>
+<td class="org-left">PreparedStatement</td>
+<td class="org-left">PseudoColumnUnsage</td>
+<td class="org-left">SQLException</td>
+</tr>
+
+<tr>
+<td class="org-left">Struct</td>
+<td class="org-left">Savepoint</td>
+<td class="org-left">DatabaseMetaData</td>
+<td class="org-left">ClientinfoStatus</td>
+<td class="org-left">SQLFeatureNotSupportedException</td>
+</tr>
+
+<tr>
+<td class="org-left">Time</td>
+<td class="org-left">DriverInfo</td>
+<td class="org-left">ParameterMetaData</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">SQLIntegrityConstraintViolationException</td>
+</tr>
+
+<tr>
+<td class="org-left">TimeStamp</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">ResultSet</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">SQLInvalidAuthorizationSpecException</td>
+</tr>
+
+<tr>
+<td class="org-left">SQLXML</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">ResultSetMetaData</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">SQLNonTransientConnectionException</td>
+</tr>
+
+<tr>
+<td class="org-left">Ref</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">SQLNonTransientException</td>
+</tr>
+
+<tr>
+<td class="org-left">RowId</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">SQLSyntaxErrorException</td>
+</tr>
+
+<tr>
+<td class="org-left">SQLOutput</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">SQLTimeOutException</td>
+</tr>
+
+<tr>
+<td class="org-left">SQLData</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">SQLTransactionRolbackException</td>
+</tr>
+
+<tr>
+<td class="org-left">SQLInput</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">SQLTransientConnectionException</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">SQLTransientException</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">SQLWarning</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<ul class="org-ul">
+<li><a id="orgcc39c76"></a>API 接口<br />
+<div class="outline-text-4" id="text-orgcc39c76">
+<p>
+API 接口是 JDBC 日常开发中使用最多的代码
+</p>
+<div class="org-src-container">
+<pre class="src src-plantuml"><span style="color: #b9ca4a;">@startuml</span>
+<span style="color: #b9ca4a;">skinparam</span> <span style="color: #c397d8;">linetype</span> ortho
+<span style="color: #b9ca4a;">skinparam</span> <span style="color: #c397d8;">backgroundColor</span> transparent
+
+interface AutoCloseable
+
+<span style="color: #b9ca4a;">package</span> <span style="color: #70c0b1;">"java.sql"</span> <span style="color: #eaeaea;">{</span>
+        interface Wrapper <span style="color: #70c0b1;">{</span>
+                T wrap<span style="color: #e7c547;">(</span>Class&lt;T&gt; iface<span style="color: #e7c547;">)</span>
+                boolean isWrapperFor<span style="color: #e7c547;">(</span>Class&lt;T&gt; iface<span style="color: #e7c547;">)</span>
+        <span style="color: #70c0b1;">}</span>
+<span style="color: #7aa6da;">        note top of</span> Wrapper
+        \346\217\220\344\276\233\350\256\277\351\227\256\345\216\237\345\247\213\347\203\210\346\200\247\347\232\204\345\212\237\350\203\275
+        \344\273\216\350\200\214\344\275\277\347\224\250 JDBC \351\251\261\345\212\250\344\270\255\347\232\204\344\270\200\344\272\233\351\235\236\346\240\207\345\207\206\347\211\271\346\200\247
+<span style="color: #b9ca4a;">        end</span> note
+
+        interface Connection
+        interface Statement
+        interface CallableStatement
+        interface PreparedStatement
+        interface DatabaseMetadata
+        interface ParameterMetadata
+        interface ResultSet
+        interface ResultSetMetadata
+<span style="color: #eaeaea;">}</span>
+
+AutoCloseable <span style="color: #b9ca4a;">&lt;|---</span> ResultSet
+AutoCloseable <span style="color: #b9ca4a;">&lt;|---</span> Connection
+AutoCloseable <span style="color: #b9ca4a;">&lt;|---</span> Statement
+
+Statement <span style="color: #b9ca4a;">&lt;|---</span> PreparedStatement
+PreparedStatement <span style="color: #b9ca4a;">&lt;|-</span>right- CallableStatement
+
+Wrapper <span style="color: #b9ca4a;">&lt;|---</span> Statement
+Wrapper <span style="color: #b9ca4a;">&lt;|--</span> Connection
+Wrapper <span style="color: #b9ca4a;">&lt;|---</span> ResultSet
+Wrapper <span style="color: #b9ca4a;">&lt;|-</span>left- DataSource
+Wrapper <span style="color: #b9ca4a;">&lt;|---</span> DatabaseMetadata
+Wrapper <span style="color: #b9ca4a;">&lt;|---</span> ParameterMetadata
+Wrapper <span style="color: #b9ca4a;">&lt;|---</span> ResultSetMetadata
+<span style="color: #b9ca4a;">@enduml</span>
+</pre>
+</div>
+
+<p>
+由上图可以看出Wrapper是主要的抽象，主要用于保护各种jdbc实现，并对其进行包装。Wrapper 使用
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #7aa6da;">Statement</span> <span style="color: #e7c547;">stmt</span> = connection.createStatement<span style="color: #eaeaea;">()</span>;
+<span style="color: #7aa6da;">Class</span> <span style="color: #e7c547;">clazz</span> = Class.forName<span style="color: #eaeaea;">(</span><span style="color: #70c0b1;">"oracle.jdbc.OracleStatement"</span><span style="color: #eaeaea;">)</span>;
+<span style="color: #b9ca4a;">if</span> <span style="color: #eaeaea;">(</span>stmt.isWrapperFor<span style="color: #70c0b1;">(</span>clazz<span style="color: #70c0b1;">)</span><span style="color: #eaeaea;">)</span> <span style="color: #eaeaea;">{</span> <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">\345\210\244\346\226\255\346\230\257\345\220\246\344\270\272\346\237\220\344\270\200\344\270\252\345\214\205\350\243\205\347\261\273</span>
+    <span style="color: #7aa6da;">OracleSatement</span> <span style="color: #e7c547;">ostmt</span> = <span style="color: #70c0b1;">(</span><span style="color: #7aa6da;">OracleSatement</span><span style="color: #70c0b1;">)</span> stmt.unwrap<span style="color: #70c0b1;">(</span>clazz<span style="color: #70c0b1;">)</span>; <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">\346\213\206\345\214\205\350\243\205</span>
+    <span style="color: #969896; font-style: italic;">// </span><span style="color: #969896; font-style: italic;">\345\205\266\344\273\226\346\223\215\344\275\234</span>
+<span style="color: #eaeaea;">}</span>
+</pre>
+</div>
+
+<p>
+API中，主要使用的相关接口主要为 Connection Statement ResultSet
+</p>
+<div class="org-src-container">
+<pre class="src src-plantuml"><span style="color: #b9ca4a;">@startuml</span>
+<span style="color: #b9ca4a;">skinparam</span> <span style="color: #c397d8;">backgroundColor</span> transparent
+<span style="color: #969896; font-style: italic;">'</span><span style="color: #969896; font-style: italic;">skinparam linetype ortho</span>
+
+interface Connection <span style="color: #eaeaea;">{</span>
+        + createStatement<span style="color: #70c0b1;">()</span>
+        + prepareStatement<span style="color: #70c0b1;">()</span>
+        + prepareCall<span style="color: #70c0b1;">()</span>
+<span style="color: #eaeaea;">}</span>
+
+interface Statement <span style="color: #eaeaea;">{</span>
+        + executeQuery<span style="color: #70c0b1;">()</span>
+<span style="color: #eaeaea;">}</span>
+
+interface PreparedStatement extends Statement <span style="color: #eaeaea;">{</span>
+        + executeQuery<span style="color: #70c0b1;">()</span>
+<span style="color: #eaeaea;">}</span>
+
+interface CallableStatement extends PreparedStatement <span style="color: #eaeaea;">{</span>
+        + executeQuery<span style="color: #70c0b1;">()</span>
+        + getMoreResult<span style="color: #70c0b1;">()</span>
+        + getResultSet<span style="color: #70c0b1;">()</span>
+<span style="color: #eaeaea;">}</span>
+
+interface ResultSet <span style="color: #eaeaea;">{</span>
+
+<span style="color: #eaeaea;">}</span>
+
+node <span style="color: #70c0b1;">"Data types "</span> as dt <span style="color: #eaeaea;">{</span>
+        class Array
+        class Blod
+<span style="color: #eaeaea;">}</span>
+
+<span style="color: #7aa6da;">note top of</span> dt
+        \345\237\272\347\241\200\347\232\204\346\225\260\346\215\256\347\261\273\345\236\213
+<span style="color: #b9ca4a;">end</span> note
+
+Connection <span style="color: #b9ca4a;">--&gt;</span> Statement : createStatement
+Connection <span style="color: #b9ca4a;">--&gt;</span> PreparedStatement : prepareStatement
+Connection <span style="color: #b9ca4a;">--&gt;</span> CallableStatement : prepareCall
+
+PreparedStatement -down<span style="color: #b9ca4a;">-&gt;</span> dt : Input of \n PreparedStatement
+CallableStatement <span style="color: #b9ca4a;">&lt;-</span>down<span style="color: #b9ca4a;">-&gt;</span> dt : Input/Output of \n CallableStatement
+dt <span style="color: #b9ca4a;">&lt;-</span>up- ResultSet : get Method
+
+Statement <span style="color: #b9ca4a;">--&gt;</span> ResultSet : executeQuery
+PreparedStatement <span style="color: #b9ca4a;">--&gt;</span> ResultSet : executeQuery
+CallableStatement <span style="color: #b9ca4a;">--&gt;</span> ResultSet : executeQuery\ngetMoreResultSet\ngetResultSet
+
+<span style="color: #b9ca4a;">@enduml</span>
+</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+
+
+
+<div id="outline-container-orgbaad14d" class="outline-3">
+<h3 id="orgbaad14d">javax.sql</h3>
+</div>
 </div>
 <div id="footnotes">
 <h2 class="footnotes">Footnotes: </h2>
@@ -123,7 +425,7 @@ ResultSetMetaData = metaData = resultSet.getMetaData<span style="color: #eaeaea;
 </p></div></div>
 
 <div class="footdef"><sup><a id="fn.3" class="footnum" href="#fnr.3" role="doc-backlink">3</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
-<code>Class.from("com.mysql.cj.jdbc.Driver")</code> 为显式加载驱动类（这里是通过 static 代码块执行 <code>DriverManager.registerDriver</code> 进行驱动注册），JDBC 4.0后无需显式加载，jdk会通过 SPI
+<code>Class.from("com.mysql.cj.jdbc.Driver")</code> 为显式加载驱动类（这里是通过 static 代码块执行 <code>DriverManager.registerDriver</code> 进行驱动注册），JDBC 4.0后无需显式加载，jdk会通过 SPI 加载 <span class="underline">/META-INF/services/java.sql.Driver</span> 中的驱动类
 </p></div></div>
 
 
