@@ -1,0 +1,40 @@
+---
+date: 2024-01-03 23:41
+author: L-ios
+layout: post
+title: openwrt dns
+excerpt: openwrt dns 优化
+tags: 
+- openwrt
+- dns
+categories: 
+- openwrt
+permailink: https://l-ios.github.io
+---
+
+<div id="outline-container-orga46c9a4" class="outline-2">
+<h2 id="orga46c9a4">openwrt上的dns架构</h2>
+<div class="outline-text-2" id="text-orga46c9a4">
+<p>
+openwrt上开启 <code>Turbo ACC网络加速</code> 后，会启动一个 dnscache 进程，在后台进行dns的查询以及缓存
+查看 verison 信息，发现是 pdnsd 改名
+</p>
+
+<p>
+直接使用pdnsd的配置即可
+</p>
+</div>
+
+<div id="outline-container-org572109e" class="outline-3">
+<h3 id="org572109e">配置文件如何生成</h3>
+<div class="outline-text-3" id="text-org572109e">
+<p>
+<code>/etc/init.d/turboacc</code> 内嵌了配置文件，直接对写入 dnscache.conf 文件的区域进行修改即可，<a href="https://manpages.ubuntu.com/manpages/trusty/man5/pdnsd.conf.5.html">pdnsd manfile</a>中即是对 pdnsd 的配置文件说明
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgb0707ae" class="outline-3">
+<h3 id="orgb0707ae"><span class="todo TODO">TODO</span> 后续提高pdnsd的使用率</h3>
+</div>
+</div>

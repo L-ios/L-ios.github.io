@@ -1,0 +1,1222 @@
+---
+date: 2022-11-23 23:38
+author: L-ios
+layout: post
+title: k8s-deploy
+excerpt: Kubernetes cluster deploy
+tags: 
+- k8s
+categories: 
+- k8s
+permailink: https://l-ios.github.io
+---
+
+<div id="outline-container-org53d127e" class="outline-2">
+<h2 id="org53d127e">前置条件</h2>
+<div class="outline-text-2" id="text-org53d127e">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">CPU</td>
+<td class="org-left">J1900</td>
+</tr>
+
+<tr>
+<td class="org-left">MEM</td>
+<td class="org-left">8G</td>
+</tr>
+
+<tr>
+<td class="org-left">OS</td>
+<td class="org-left">Fedora 37</td>
+</tr>
+
+<tr>
+<td class="org-left">虚拟软件</td>
+<td class="org-left">VirtualBox<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup></td>
+</tr>
+
+<tr>
+<td class="org-left">虚拟机</td>
+<td class="org-left">Fedora Cloud 37<sup><a id="fnr.2" class="footref" href="#fn.2" role="doc-backlink">2</a></sup></td>
+</tr>
+
+<tr>
+<td class="org-left">Kerbernetes</td>
+<td class="org-left">1.25.4</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div id="outline-container-orgfbd1320" class="outline-3">
+<h3 id="orgfbd1320">安装 virtualbox</h3>
+<div class="outline-text-3" id="text-orgfbd1320">
+<p>
+VirtualBox 可以通过官网安装，也可以通过包管理器进行安装
+</p>
+<ol class="org-ol">
+<li>官网
+Fedora 37 无rpm安装包，先通过 <a href="https://download.virtualbox.org/virtualbox/7.0.4/VirtualBox-7.0-7.0.4_154605_fedora36-1.x86_64.rpm">VirtualBox for Fedora36</a> 进行安装</li>
+<li><p>
+通过 rpmfusion 进行安装
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">sudo dnf install -y <span style="color: #70c0b1;">\</span>
+     https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$<span style="color: #eaeaea;">(</span>rpm -E %fedora<span style="color: #eaeaea;">)</span>.noarch.rpm
+sudo dnf install -y VirtualBox VirtualBox-devel VirtualBox-kmodsrc VirtualBox-server VirtualBox-webservice
+</pre>
+</div></li>
+<li><p>
+配置 virtualbox
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#24320;&#21551;&#39537;&#21160;</span>
+sudo systemctl start akmods
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#24320;&#21551;&#23432;&#25252;&#36827;&#31243;</span>
+sudo systemctl start vboxdrv
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#37197;&#32622;&#29992;&#25143;&#32452;</span>
+sudo usermod -a -G vboxusers $<span style="color: #e7c547;">USER</span>
+</pre>
+</div></li>
+<li><p>
+安装 Extension Pack
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#26597;&#30475;VirtualBox&#29256;&#26412;&#21495;</span>
+<span style="color: #c397d8;">echo</span> $<span style="color: #eaeaea;">{</span><span style="color: #e7c547;">$</span><span style="color: #70c0b1;">(</span>vboxmanage -V<span style="color: #70c0b1;">)</span>/_*/<span style="color: #eaeaea;">}</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#19979;&#36733; Extension Pack</span>
+<span style="color: #e7c547;">version</span>=$<span style="color: #eaeaea;">{</span><span style="color: #e7c547;">$</span><span style="color: #70c0b1;">(</span>vboxmanage -V<span style="color: #70c0b1;">)</span>/_*/<span style="color: #eaeaea;">}</span>
+wget https://download.virtualbox.org/virtualbox/$<span style="color: #eaeaea;">{</span><span style="color: #e7c547;">version</span><span style="color: #eaeaea;">}</span>/Oracle_VM_VirtualBox_Extension_Pack-$<span style="color: #eaeaea;">{</span><span style="color: #e7c547;">version</span><span style="color: #eaeaea;">}</span>.vbox-extpack
+sudo vboxmanage extpack install --replace Oracle_VM_VirtualBox_Extension_Pack-$<span style="color: #eaeaea;">{</span><span style="color: #e7c547;">version</span><span style="color: #eaeaea;">}</span>.vbox-extpack
+</pre>
+</div></li>
+</ol>
+
+
+<p>
+通过上面的一系列操作，virtualbox就算安装完成，此时可能还缺少 VBoxGuestAdditions ,可以通过如下命令进行下载&amp;安装
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #e7c547;">version</span>=$<span style="color: #eaeaea;">{</span><span style="color: #e7c547;">$</span><span style="color: #70c0b1;">(</span>vboxmanage -V<span style="color: #70c0b1;">)</span>/_*/<span style="color: #eaeaea;">}</span>
+wget -o VBoxGuestAdditons.iso https://download.virtualbox.org/virtualbox/$<span style="color: #eaeaea;">{</span><span style="color: #e7c547;">version</span><span style="color: #eaeaea;">}</span>/VBoxGuestAdditions_$<span style="color: #eaeaea;">{</span><span style="color: #e7c547;">version</span><span style="color: #eaeaea;">}</span>.iso
+sudo mv VBoxGuestAdditions.iso /usr/lib64/virtualbox/VBoxGuestAdditions.iso
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org4eb1f6d" class="outline-3">
+<h3 id="org4eb1f6d">下载&amp;导入 vagrant 镜像</h3>
+<div class="outline-text-3" id="text-org4eb1f6d">
+<p>
+找到对 vagrant 制作的镜像，并选择 VirtualBox Image 进行下载，此处可以利用 清华源<sup><a id="fnr.3" class="footref" href="#fn.3" role="doc-backlink">3</a></sup> 进行加速
+<a href="https://download.nus.edu.sg/mirror/fedora/linux/releases/37/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-37-1.7.x86_64.vagrant-virtualbox.box">Fedora 37 Cloud Base Images for Vagrant (VirtualBox image)</a>
+</p>
+
+<p>
+通过如下脚本进行进行加载
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #969896; font-style: italic;">#</span><span style="color: #969896; font-style: italic;">!/bin/</span><span style="color: #b9ca4a;">bash</span>
+
+<span style="color: #e7c547;">BOX</span>=$<span style="color: #e7c547;">1</span>
+
+<span style="color: #b9ca4a;">if</span> <span style="color: #eaeaea;">[</span> -z $<span style="color: #e7c547;">BOX</span> <span style="color: #eaeaea;">]</span>; <span style="color: #b9ca4a;">then</span>
+    <span style="color: #c397d8;">echo</span> <span style="color: #70c0b1;">"Need argments."</span>
+    <span style="color: #b9ca4a;">exit</span> -1
+<span style="color: #b9ca4a;">fi</span>
+
+<span style="color: #b9ca4a;">if</span> <span style="color: #eaeaea;">[</span> <span style="color: #e78c45;">!</span> -e $<span style="color: #e7c547;">BOX</span> <span style="color: #eaeaea;">]</span>; <span style="color: #b9ca4a;">then</span>
+    <span style="color: #c397d8;">echo</span> <span style="color: #70c0b1;">"Not existed."</span>
+    <span style="color: #b9ca4a;">exit</span> -2
+<span style="color: #b9ca4a;">fi</span>
+
+mkdir -p /tmp/box
+cp $<span style="color: #e7c547;">BOX</span> /tmp/box/$<span style="color: #e7c547;">BOX</span>
+
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Use the original box name as VM name.</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">For example, your vagrant box is "myvm_xxxxxxxx", use "myvm"</span>
+<span style="color: #e7c547;">VM</span>=<span style="color: #70c0b1;">"your_vm"</span>
+
+<span style="color: #c397d8;">pushd</span> /tmp/box
+
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">extract box</span>
+tar xf $<span style="color: #e7c547;">BOX</span>
+
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">import</span>
+vboxmanage import box.ovf
+
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Rename to a better name.</span>
+<span style="color: #e7c547;">UUID</span>=$<span style="color: #eaeaea;">(</span>vboxmanage list vms | grep $<span style="color: #e7c547;">VM</span> | awk <span style="color: #70c0b1;">'{print $2;}'</span><span style="color: #eaeaea;">)</span>
+vboxmanage modifyvm $<span style="color: #e7c547;">UUID</span> --name $<span style="color: #e7c547;">VM</span>
+
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">p4p1 is your new network adapter name.</span>
+vboxmanage modifyvm $<span style="color: #e7c547;">VM</span> --bridgeadapter2 p4p1
+<span style="color: #c397d8;">popd</span>
+
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">remove temporary files</span>
+rm -rf /tmp/box
+
+<span style="color: #b9ca4a;">exit</span> 0
+</pre>
+</div>
+<p>
+将上面的内容保持为 <code>import_vagrant_box_into_vbox.sh</code> ，下载好 镜像后，通过如下命令进行加载
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">import_vagrant_box_into_vbox.sh Fedora-Cloud-Base-Vagrant-37-1.7.x86_64.vagrant-virtualbox.box
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge809342" class="outline-3">
+<h3 id="orge809342">利用 vagrant 镜像制作 kubernetes 基础镜像</h3>
+<div class="outline-text-3" id="text-orge809342">
+</div>
+<ul class="org-ul">
+<li><a id="orgff8104a"></a>启动虚拟机，并通过ssh进行连接<br />
+<div class="outline-text-4" id="text-orgff8104a">
+<div class="org-src-container">
+<pre class="src src-shell">vboxmanage startvm --headless
+</pre>
+</div>
+</div>
+</li>
+<li><a id="org01c22d7"></a>重新配置sshd fingerprint 相关证书<br />
+<div class="outline-text-4" id="text-org01c22d7">
+<div class="org-src-container">
+<pre class="src src-shell">sudo ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N <span style="color: #70c0b1;">''</span> -q -t rsa
+sudo ssh-keygen -f /etc/ssh/ssh_host_ecdsa_key -N <span style="color: #70c0b1;">''</span> -q -t ecdsa
+sudo ssh-keygen -f /etc/ssh/ssh_host_ed25519_key -N <span style="color: #70c0b1;">''</span> -q -t ed25519
+</pre>
+</div>
+
+<p>
+client连接，相同ip，key冲突
+<code>ssh-keygen -R ${冲突IP}</code> 即可删除 <code>~/.ssh/known_hosts</code> 中的冲突
+  ssh-keygen -R ${ip} 可以备份knows<sub>host</sub>，并删除其中的对应的脏数据
+</p>
+</div>
+</li>
+<li><a id="org5af1a3c"></a>安装基础 rpm包<br />
+<div class="outline-text-4" id="text-org5af1a3c">
+<div class="org-src-container">
+<pre class="src src-shell">sudo dnf install iproute-tc conntrack ipvsadm ipset jq sysstat curl iptables libseccomp -y
+sudo dnf install -y ethtool ebtables-services kernel-modules
+</pre>
+</div>
+
+<p>
+Q: [WARNING FileExisting-tc]: tc not found in system path
+A: iproute-tc 安装即可
+</p>
+</div>
+</li>
+
+<li><a id="org6dde00c"></a>关闭 zram swap<br />
+<div class="outline-text-4" id="text-org6dde00c">
+<div class="org-src-container">
+<pre class="src src-shell">sudo systemctl --type swap <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#25214;&#21040;&#23545;&#24212;&#30340; swap unit</span>
+sudo systemctl mask dev-zram0.swap <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#20851;&#38381;&#23545;&#24212;&#30340;swap</span>
+sudo swapoff -av
+
+</pre>
+</div>
+</div>
+</li>
+<li><a id="org854e8d5"></a>配置 sysctl<br />
+<div class="outline-text-4" id="text-org854e8d5">
+<div class="org-src-container">
+<pre class="src src-shell">cat &lt;&lt;EOF | sudo tee /etc/modules-load.d/k8s.conf
+<span style="color: #70c0b1;">overlay</span>
+<span style="color: #70c0b1;">br_netfilter</span>
+<span style="color: #70c0b1;">EOF</span>
+sudo modprobe overlay
+sudo modprobe br_netfilter
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#35774;&#32622;&#25152;&#38656;&#30340; sysctl &#21442;&#25968;&#65292;&#21442;&#25968;&#22312;&#37325;&#26032;&#21551;&#21160;&#21518;&#20445;&#25345;&#19981;&#21464;</span>
+cat &lt;&lt;EOF | sudo tee /etc/sysctl.d/k8s.conf
+<span style="color: #70c0b1;">net.bridge.bridge-nf-call-iptables  = 1</span>
+<span style="color: #70c0b1;">net.bridge.bridge-nf-call-ip6tables = 1</span>
+<span style="color: #70c0b1;">net.ipv4.ip_forward                 = 1</span>
+<span style="color: #70c0b1;">EOF</span>
+sudo sysctl --system
+</pre>
+</div>
+<p>
+1*** fedora cloud 安装kubernetes
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">sudo dnf install -y bash-completion <span style="color: #70c0b1;">\ </span># bash &#21629;&#20196;&#34892;&#34917;&#20840;
+    kubernetes containerd <span style="color: #70c0b1;">\ </span># cri &#36816;&#34892;&#26102;&#65292;kubernetes&#22522;&#30784;&#37197;&#32622;
+    kubernetes-client kubernetes-master kubernetes-node <span style="color: #70c0b1;">\</span>
+    kubernetes-kubeadm <span style="color: #70c0b1;">\ </span># kubeadm &#21629;&#20196;
+    containernetworking-plugins <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">cni &#21629;&#20196;</span>
+</pre>
+</div>
+</div>
+</li>
+
+
+<li><a id="org6fbecb9"></a>配置 containerd crictl<br />
+<ul class="org-ul">
+<li><a id="org3995d85"></a>配置crictl<br /></li>
+
+<li><a id="org33115c5"></a>containerd sandbox 问题，切换为systemd导致<br />
+<div class="outline-text-5" id="text-org33115c5">
+<p>
+/etc/containerd/config.yaml
+</p>
+<div class="org-src-container">
+<pre class="src src-yaml">[plugins]
+  [plugins.<span style="color: #70c0b1;">"io.containerd.grpc.v1.cri"</span>]
+    [plugins.<span style="color: #70c0b1;">"io.containerd.grpc.v1.cri"</span>.containerd]
+      [plugins.<span style="color: #70c0b1;">"io.containerd.grpc.v1.cri"</span>.containerd.runtimes]
+        [plugins.<span style="color: #70c0b1;">"io.containerd.grpc.v1.cri"</span>.containerd.runtimes.runc]
+          runtime_type = <span style="color: #70c0b1;">"io.containerd.runc.v2"</span>
+          [plugins.<span style="color: #70c0b1;">"io.containerd.grpc.v1.cri"</span>.containerd.runtimes.runc.options]
+            SystemdCgroup = true
+</pre>
+</div>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org10e8187" class="outline-2">
+<h2 id="org10e8187">init controller plane(控制面)</h2>
+<div class="outline-text-2" id="text-org10e8187">
+<p>
+kubernetes 节点有管理节点，也有node节点，管理节点的角色为 controller-plane，现在来初始化一个管理节点。
+</p>
+</div>
+<div id="outline-container-org3b9dc99" class="outline-3">
+<h3 id="org3b9dc99">配置 kubeadm init yaml</h3>
+<div class="outline-text-3" id="text-org3b9dc99">
+<p>
+kubeadm config print init-defaults &gt; kubeadm.yaml
+编辑默认配置为如下内容，可以适当的修改
+</p>
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #e7c547;">apiVersion</span>: kubeadm.k8s.io/v1beta3
+<span style="color: #e7c547;">bootstrapTokens</span>:
+- <span style="color: #e7c547;">groups</span>:
+  - system:bootstrappers:kubeadm:default-node-token
+  <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#33258;&#23450;&#20041;&#30340;&#33410;&#28857;token&#38656;&#35201;&#28385;&#36275;&#27491;&#21017;&#65306;[a-z0-9]{6}\.[a-z0-9]{16}</span>
+  <span style="color: #e7c547;">token</span>: abcdef.0123456789abcdef
+  <span style="color: #e7c547;">ttl</span>: 24h0m0s
+  <span style="color: #e7c547;">usages</span>:
+  - signing
+  - authentication
+<span style="color: #e7c547;">kind</span>: InitConfiguration
+<span style="color: #e7c547;">localAPIEndpoint</span>:
+  <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#31649;&#29702;&#33410;&#28857;&#30340;IP&#22320;&#22336;&#65292;&#20026;&#20102;&#23481;&#22120;&#20869;&#37096;&#35775;&#38382; apiserver</span>
+  <span style="color: #e7c547;">advertiseAddress</span>: 10.0.2.4
+  <span style="color: #e7c547;">bindPort</span>: 6443
+<span style="color: #e7c547;">nodeRegistration</span>:
+  <span style="color: #e7c547;">criSocket</span>: unix:///var/run/containerd/containerd.sock
+  <span style="color: #e7c547;">imagePullPolicy</span>: IfNotPresent
+  <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#27880;&#20876;&#30340;&#33410;&#28857;&#21517;&#31216;</span>
+  <span style="color: #e7c547;">name</span>: k8s-master
+  <span style="color: #e7c547;">taints</span>: <span style="color: #7aa6da;">null</span>
+<span style="color: #969896; font-style: italic;">---</span>
+<span style="color: #e7c547;">apiServer</span>:
+  <span style="color: #e7c547;">timeoutForControlPlane</span>: 4m0s
+<span style="color: #e7c547;">apiVersion</span>: kubeadm.k8s.io/v1beta3
+<span style="color: #e7c547;">certificatesDir</span>: /etc/kubernetes/pki
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">cluster name</span>
+<span style="color: #e7c547;">clusterName</span>: k8s-master
+<span style="color: #e7c547;">controllerManager</span>: {<span style="color: #e7c547;">}</span>
+<span style="color: #e7c547;">dns</span>: {<span style="color: #e7c547;">}</span>
+<span style="color: #e7c547;">etcd</span>:
+  <span style="color: #e7c547;">local</span>:
+    <span style="color: #e7c547;">dataDir</span>: /var/lib/etcd
+<span style="color: #e7c547;">imageRepository</span>: registry.k8s.io
+<span style="color: #e7c547;">kind</span>: ClusterConfiguration
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">kubernetes &#29256;&#26412;&#21495;&#65292;&#21487;&#20197;&#36890;&#36807;kubectl version&#33719;&#21462;</span>
+<span style="color: #e7c547;">kubernetesVersion</span>: 1.25.4
+<span style="color: #e7c547;">networking</span>:
+  <span style="color: #e7c547;">dnsDomain</span>: cluster.local
+  <span style="color: #e7c547;">serviceSubnet</span>: 10.96.0.0/12
+  <span style="color: #e7c547;">podSubnet</span>: 10.244.0.0/16
+<span style="color: #e7c547;">scheduler</span>: {}
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">&#27880;&#20876;&#31649;&#29702;&#30340;&#33410;&#28857;</span>
+<span style="color: #e7c547;">controlPlaneEndpoint</span>: k8s-master
+<span style="color: #969896; font-style: italic;">---</span>
+<span style="color: #e7c547;">apiVersion</span>: kubelet.config.k8s.io/v1beta1
+<span style="color: #e7c547;">kind</span>: KubeletConfiguration
+<span style="color: #e7c547;">cgroupDriver</span>: systemd
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">resolv.conf &#25991;&#20214;&#36335;&#24452;&#65292;&#21487;&#20197;&#29992;&#20110;&#35299;&#20915;&#20869;&#37096;dns&#38382;&#39064;</span>
+<span style="color: #e7c547;">resolvConf</span>: /etc/resolv.conf
+<span style="color: #e7c547;">clusterDNS</span>:
+- 10.96.0.10
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3fba724" class="outline-3">
+<h3 id="org3fba724">初始化 controller plane 节点</h3>
+<div class="outline-text-3" id="text-org3fba724">
+<p>
+kubernetes 初始化成功会有如下输出：
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">    You should now deploy a pod network to the cluster.
+Run <span style="color: #70c0b1;">"kubectl apply -f [podnetwork].yaml"</span> with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+You can now join any number of control-plane nodes by copying certificate authorities
+and service account keys on each node and then running the following as root:
+
+  kubeadm join k8s-master:6443 --token abcdef.0123456789abcdef <span style="color: #70c0b1;">\</span>
+        --discovery-token-ca-cert-hash sha256:d904cfe3d6b664f609e7a1f3eb55aa6983afd4c728219f10a913628f9fb61d16 <span style="color: #70c0b1;">\</span>
+        --control-plane 
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join k8s-master:6443 --token abcdef.0123456789abcdef <span style="color: #70c0b1;">\</span>
+        --discovery-token-ca-cert-hash sha256:d904cfe3d6b664f609e7a1f3eb55aa6983afd4c728219f10a913628f9fb61d16 
+
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3c53cb1" class="outline-3">
+<h3 id="org3c53cb1">init<sub>default</sub>, 修改配置</h3>
+</div>
+
+<div id="outline-container-org509edf3" class="outline-3">
+<h3 id="org509edf3">add flannel</h3>
+<div class="outline-text-3" id="text-org509edf3">
+<p>
+flannel是dns的实现方案，可以不用替换coredns
+</p>
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #969896; font-style: italic;">---</span>
+<span style="color: #e7c547;">kind</span>: Namespace
+<span style="color: #e7c547;">apiVersion</span>: v1
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">name</span>: kube-flannel
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">pod-security.kubernetes.io/enforce</span>: privileged
+<span style="color: #969896; font-style: italic;">---</span>
+<span style="color: #e7c547;">kind</span>: ClusterRole
+<span style="color: #e7c547;">apiVersion</span>: rbac.authorization.k8s.io/v1
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">name</span>: flannel
+<span style="color: #e7c547;">rules</span>:
+- <span style="color: #e7c547;">apiGroups</span>:
+  - <span style="color: #70c0b1;">""</span>
+  <span style="color: #e7c547;">resources</span>:
+  - pods
+  <span style="color: #e7c547;">verbs</span>:
+  - get
+- <span style="color: #e7c547;">apiGroups</span>:
+  - <span style="color: #70c0b1;">""</span>
+  <span style="color: #e7c547;">resources</span>:
+  - nodes
+  <span style="color: #e7c547;">verbs</span>:
+  - get
+  - list
+  - watch
+- <span style="color: #e7c547;">apiGroups</span>:
+  - <span style="color: #70c0b1;">""</span>
+  <span style="color: #e7c547;">resources</span>:
+  - nodes/status
+  <span style="color: #e7c547;">verbs</span>:
+  - patch
+- <span style="color: #e7c547;">apiGroups</span>:
+  - <span style="color: #70c0b1;">"networking.k8s.io"</span>
+  <span style="color: #e7c547;">resources</span>:
+  - clustercidrs
+  <span style="color: #e7c547;">verbs</span>:
+  - list
+  - watch
+<span style="color: #969896; font-style: italic;">---</span>
+<span style="color: #e7c547;">kind</span>: ClusterRoleBinding
+<span style="color: #e7c547;">apiVersion</span>: rbac.authorization.k8s.io/v1
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">name</span>: flannel
+<span style="color: #e7c547;">roleRef</span>:
+  <span style="color: #e7c547;">apiGroup</span>: rbac.authorization.k8s.io
+  <span style="color: #e7c547;">kind</span>: ClusterRole
+  <span style="color: #e7c547;">name</span>: flannel
+<span style="color: #e7c547;">subjects</span>:
+- <span style="color: #e7c547;">kind</span>: ServiceAccount
+  <span style="color: #e7c547;">name</span>: flannel
+  <span style="color: #e7c547;">namespace</span>: kube-flannel
+<span style="color: #969896; font-style: italic;">---</span>
+<span style="color: #e7c547;">apiVersion</span>: v1
+<span style="color: #e7c547;">kind</span>: ServiceAccount
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">name</span>: flannel
+  <span style="color: #e7c547;">namespace</span>: kube-flannel
+<span style="color: #969896; font-style: italic;">---</span>
+<span style="color: #e7c547;">kind</span>: ConfigMap
+<span style="color: #e7c547;">apiVersion</span>: v1
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">name</span>: kube-flannel-cfg
+  <span style="color: #e7c547;">namespace</span>: kube-flannel
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">tier</span>: node
+    <span style="color: #e7c547;">app</span>: flannel
+<span style="color: #e7c547;">data</span>:
+  <span style="color: #e7c547;">cni-conf.json</span>: |
+    <span style="color: #70c0b1;">{</span>
+      <span style="color: #70c0b1;">"name"</span>: <span style="color: #70c0b1;">"cbr0"</span>,
+      <span style="color: #70c0b1;">"cniVersion"</span>: <span style="color: #70c0b1;">"0.3.1"</span>,
+      <span style="color: #70c0b1;">"plugins"</span>: [
+<span style="color: #70c0b1;">        {</span>
+          <span style="color: #70c0b1;">"type"</span>: <span style="color: #70c0b1;">"flannel"</span>,
+          <span style="color: #70c0b1;">"delegate"</span>: {
+            <span style="color: #70c0b1;">"hairpinMode"</span>: <span style="color: #7aa6da;">true</span>,
+            <span style="color: #70c0b1;">"isDefaultGateway"</span>: <span style="color: #7aa6da;">true</span>
+<span style="color: #70c0b1;">          }</span>
+<span style="color: #70c0b1;">        },</span>
+<span style="color: #70c0b1;">        {</span>
+          <span style="color: #70c0b1;">"type"</span>: <span style="color: #70c0b1;">"portmap"</span>,
+          <span style="color: #70c0b1;">"capabilities"</span>: {
+            <span style="color: #70c0b1;">"portMappings"</span>: <span style="color: #7aa6da;">true</span>
+<span style="color: #70c0b1;">          }</span>
+<span style="color: #70c0b1;">        }</span>
+<span style="color: #70c0b1;">      ]</span>
+<span style="color: #70c0b1;">    }</span>
+  net-conf.json: |
+    <span style="color: #70c0b1;">{</span>
+      <span style="color: #70c0b1;">"Network"</span>: <span style="color: #70c0b1;">"10.244.0.0/16"</span>,
+      <span style="color: #70c0b1;">"Backend"</span>: {
+        <span style="color: #70c0b1;">"Type"</span>: <span style="color: #70c0b1;">"vxlan"</span>
+<span style="color: #70c0b1;">      }</span>
+<span style="color: #70c0b1;">    }</span>
+<span style="color: #969896; font-style: italic;">---</span>
+<span style="color: #e7c547;">apiVersion</span>: apps/v1
+<span style="color: #e7c547;">kind</span>: DaemonSet
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">name</span>: kube-flannel-ds
+  <span style="color: #e7c547;">namespace</span>: kube-flannel
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">tier</span>: node
+    <span style="color: #e7c547;">app</span>: flannel
+<span style="color: #e7c547;">spec</span>:
+  <span style="color: #e7c547;">selector</span>:
+    <span style="color: #e7c547;">matchLabels</span>:
+      <span style="color: #e7c547;">app</span>: flannel
+  <span style="color: #e7c547;">template</span>:
+    <span style="color: #e7c547;">metadata</span>:
+      <span style="color: #e7c547;">labels</span>:
+        <span style="color: #e7c547;">tier</span>: node
+        <span style="color: #e7c547;">app</span>: flannel
+    <span style="color: #e7c547;">spec</span>:
+      <span style="color: #e7c547;">affinity</span>:
+        <span style="color: #e7c547;">nodeAffinity</span>:
+          <span style="color: #e7c547;">requiredDuringSchedulingIgnoredDuringExecution</span>:
+            <span style="color: #e7c547;">nodeSelectorTerms</span>:
+            - <span style="color: #e7c547;">matchExpressions</span>:
+              - <span style="color: #e7c547;">key</span>: kubernetes.io/os
+                <span style="color: #e7c547;">operator</span>: In
+                <span style="color: #e7c547;">values</span>:
+                - linux
+      <span style="color: #e7c547;">hostNetwork</span>: <span style="color: #7aa6da;">true</span>
+      <span style="color: #e7c547;">priorityClassName</span>: system-node-critical
+      <span style="color: #e7c547;">tolerations</span>:
+      - <span style="color: #e7c547;">operator</span>: Exists
+        <span style="color: #e7c547;">effect</span>: NoSchedule
+      <span style="color: #e7c547;">serviceAccountName</span>: flannel
+      <span style="color: #e7c547;">initContainers</span>:
+      - <span style="color: #e7c547;">name</span>: install-cni-plugin
+        <span style="color: #969896; font-style: italic;">#</span><span style="color: #969896; font-style: italic;">image: flannelcni/flannel-cni-plugin:v1.1.2 #for ppc64le and mips64le (dockerhub limitations may apply)</span>
+        <span style="color: #e7c547;">image</span>: docker.io/rancher/mirrored-flannelcni-flannel-cni-plugin:v1.1.2
+        <span style="color: #e7c547;">command</span>:
+        - cp
+        <span style="color: #e7c547;">args</span>:
+        - -f
+        - /flannel
+        - /opt/cni/bin/flannel
+        <span style="color: #e7c547;">volumeMounts</span>:
+        - <span style="color: #e7c547;">name</span>: cni-plugin
+          <span style="color: #e7c547;">mountPath</span>: /opt/cni/bin
+      - <span style="color: #e7c547;">name</span>: install-cni
+       <span style="color: #969896; font-style: italic;">#</span><span style="color: #969896; font-style: italic;">image: flannelcni/flannel:v0.20.2 #for ppc64le and mips64le (dockerhub limitations may apply)</span>
+        <span style="color: #e7c547;">image</span>: docker.io/rancher/mirrored-flannelcni-flannel:v0.20.2
+        <span style="color: #e7c547;">command</span>:
+        - cp
+        <span style="color: #e7c547;">args</span>:
+        - -f
+        - /etc/kube-flannel/cni-conf.json
+        - /etc/cni/net.d/10-flannel.conflist
+        <span style="color: #e7c547;">volumeMounts</span>:
+        - <span style="color: #e7c547;">name</span>: cni
+          <span style="color: #e7c547;">mountPath</span>: /etc/cni/net.d
+        - <span style="color: #e7c547;">name</span>: flannel-cfg
+          <span style="color: #e7c547;">mountPath</span>: /etc/kube-flannel/
+      <span style="color: #e7c547;">containers</span>:
+      - <span style="color: #e7c547;">name</span>: kube-flannel
+       <span style="color: #969896; font-style: italic;">#</span><span style="color: #969896; font-style: italic;">image: flannelcni/flannel:v0.20.2 #for ppc64le and mips64le (dockerhub limitations may apply)</span>
+        <span style="color: #e7c547;">image</span>: docker.io/rancher/mirrored-flannelcni-flannel:v0.20.2
+        <span style="color: #e7c547;">command</span>:
+        - /opt/bin/flanneld
+        <span style="color: #e7c547;">args</span>:
+        - --ip-masq
+        - --kube-subnet-mgr
+        <span style="color: #e7c547;">resources</span>:
+          <span style="color: #e7c547;">requests</span>:
+            <span style="color: #e7c547;">cpu</span>: <span style="color: #70c0b1;">"100m"</span>
+            <span style="color: #e7c547;">memory</span>: <span style="color: #70c0b1;">"50Mi"</span>
+        <span style="color: #e7c547;">securityContext</span>:
+          <span style="color: #e7c547;">privileged</span>: <span style="color: #7aa6da;">false</span>
+          <span style="color: #e7c547;">capabilities</span>:
+            <span style="color: #e7c547;">add</span>: [<span style="color: #70c0b1;">"NET_ADMIN"</span>, <span style="color: #70c0b1;">"NET_RAW"</span>]
+        <span style="color: #e7c547;">env</span>:
+        - <span style="color: #e7c547;">name</span>: POD_NAME
+          <span style="color: #e7c547;">valueFrom</span>:
+            <span style="color: #e7c547;">fieldRef</span>:
+              <span style="color: #e7c547;">fieldPath</span>: metadata.name
+        - <span style="color: #e7c547;">name</span>: POD_NAMESPACE
+          <span style="color: #e7c547;">valueFrom</span>:
+            <span style="color: #e7c547;">fieldRef</span>:
+              <span style="color: #e7c547;">fieldPath</span>: metadata.namespace
+        - <span style="color: #e7c547;">name</span>: EVENT_QUEUE_DEPTH
+          <span style="color: #e7c547;">value</span>: <span style="color: #70c0b1;">"5000"</span>
+        <span style="color: #e7c547;">volumeMounts</span>:
+        - <span style="color: #e7c547;">name</span>: run
+          <span style="color: #e7c547;">mountPath</span>: /run/flannel
+        - <span style="color: #e7c547;">name</span>: flannel-cfg
+          <span style="color: #e7c547;">mountPath</span>: /etc/kube-flannel/
+        - <span style="color: #e7c547;">name</span>: xtables-lock
+          <span style="color: #e7c547;">mountPath</span>: /run/xtables.lock
+      <span style="color: #e7c547;">volumes</span>:
+      - <span style="color: #e7c547;">name</span>: run
+        <span style="color: #e7c547;">hostPath</span>:
+          <span style="color: #e7c547;">path</span>: /run/flannel
+      - <span style="color: #e7c547;">name</span>: cni-plugin
+        <span style="color: #e7c547;">hostPath</span>:
+          <span style="color: #e7c547;">path</span>: /usr/libexec/cni
+      - <span style="color: #e7c547;">name</span>: cni
+        <span style="color: #e7c547;">hostPath</span>:
+          <span style="color: #e7c547;">path</span>: /etc/cni/net.d
+      - <span style="color: #e7c547;">name</span>: flannel-cfg
+        <span style="color: #e7c547;">configMap</span>:
+          <span style="color: #e7c547;">name</span>: kube-flannel-cfg
+      - <span style="color: #e7c547;">name</span>: xtables-lock
+        <span style="color: #e7c547;">hostPath</span>:
+          <span style="color: #e7c547;">path</span>: /run/xtables.lock
+          <span style="color: #e7c547;">type</span>: FileOrCreate
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org550d538" class="outline-2">
+<h2 id="org550d538">添加节点</h2>
+<div class="outline-text-2" id="text-org550d538">
+<ol class="org-ol">
+<li>根据controller plane中的输出信息，获取token和ca-cert-hash进行节点的加入， <code>--control-plane</code> 控制加入的节点是否为控制面</li>
+</ol>
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #e7c547;">apiVersion</span>: kubeadm.k8s.io/v1beta3
+<span style="color: #e7c547;">caCertPath</span>: /etc/kubernetes/pki/ca.crt
+<span style="color: #e7c547;">discovery</span>:
+  <span style="color: #e7c547;">bootstrapToken</span>:
+    <span style="color: #e7c547;">apiServerEndpoint</span>: k8s-master:6443
+    <span style="color: #e7c547;">token</span>: abcdef.0123456789abcdef
+    <span style="color: #e7c547;">unsafeSkipCAVerification</span>: <span style="color: #7aa6da;">true</span>
+    <span style="color: #e7c547;">caCertHashes</span>: 
+      - sha256:d623956dbf0f2d6c7f00521363778622285ccc93262084f6c777444ae305bd12
+  <span style="color: #e7c547;">timeout</span>: 5m0s
+  <span style="color: #e7c547;">tlsBootstrapToken</span>: abcdef.0123456789abcdef
+<span style="color: #e7c547;">kind</span>: JoinConfiguration
+<span style="color: #e7c547;">nodeRegistration</span>:
+  <span style="color: #e7c547;">criSocket</span>: unix:///var/run/containerd/containerd.sock
+  <span style="color: #e7c547;">imagePullPolicy</span>: IfNotPresent
+  <span style="color: #e7c547;">name</span>: k8s-node1
+  <span style="color: #e7c547;">taints</span>: <span style="color: #7aa6da;">null</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org16f2ba8" class="outline-2">
+<h2 id="org16f2ba8">install kubernetes dashboard</h2>
+<div class="outline-text-2" id="text-org16f2ba8">
+</div>
+<div id="outline-container-org10e54ef" class="outline-3">
+<h3 id="org10e54ef">安装dashboard</h3>
+<div class="outline-text-3" id="text-org10e54ef">
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Copyright 2017 The Kubernetes Authors.</span>
+<span style="color: #969896; font-style: italic;">#</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Licensed under the Apache License, Version 2.0 (the "License");</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">you may not use this file except in compliance with the License.</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">You may obtain a copy of the License at</span>
+<span style="color: #969896; font-style: italic;">#</span>
+<span style="color: #969896; font-style: italic;">#     </span><span style="color: #969896; font-style: italic;">http://www.apache.org/licenses/LICENSE-2.0</span>
+<span style="color: #969896; font-style: italic;">#</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Unless required by applicable law or agreed to in writing, software</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">distributed under the License is distributed on an "AS IS" BASIS,</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">See the License for the specific language governing permissions and</span>
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">limitations under the License.</span>
+
+<span style="color: #e7c547;">apiVersion</span>: v1
+<span style="color: #e7c547;">kind</span>: Namespace
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard
+
+<span style="color: #969896; font-style: italic;">---</span>
+
+<span style="color: #e7c547;">apiVersion</span>: v1
+<span style="color: #e7c547;">kind</span>: ServiceAccount
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">k8s-app</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+
+<span style="color: #969896; font-style: italic;">---</span>
+
+<span style="color: #e7c547;">kind</span>: Service
+<span style="color: #e7c547;">apiVersion</span>: v1
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">k8s-app</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+<span style="color: #e7c547;">spec</span>:
+  <span style="color: #e7c547;">ports</span>:
+    - <span style="color: #e7c547;">port</span>: 443
+      <span style="color: #e7c547;">targetPort</span>: 8443
+  <span style="color: #e7c547;">selector</span>:
+    <span style="color: #e7c547;">k8s-app</span>: kubernetes-dashboard
+
+<span style="color: #969896; font-style: italic;">---</span>
+
+<span style="color: #e7c547;">apiVersion</span>: v1
+<span style="color: #e7c547;">kind</span>: Secret
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">k8s-app</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard-certs
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+<span style="color: #e7c547;">type</span>: Opaque
+
+<span style="color: #969896; font-style: italic;">---</span>
+
+<span style="color: #e7c547;">apiVersion</span>: v1
+<span style="color: #e7c547;">kind</span>: Secret
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">k8s-app</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard-csrf
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+<span style="color: #e7c547;">type</span>: Opaque
+<span style="color: #e7c547;">data</span>:
+  <span style="color: #e7c547;">csrf</span>: <span style="color: #70c0b1;">""</span>
+
+<span style="color: #969896; font-style: italic;">---</span>
+
+<span style="color: #e7c547;">apiVersion</span>: v1
+<span style="color: #e7c547;">kind</span>: Secret
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">k8s-app</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard-key-holder
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+<span style="color: #e7c547;">type</span>: Opaque
+
+<span style="color: #969896; font-style: italic;">---</span>
+
+<span style="color: #e7c547;">kind</span>: ConfigMap
+<span style="color: #e7c547;">apiVersion</span>: v1
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">k8s-app</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard-settings
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+
+<span style="color: #969896; font-style: italic;">---</span>
+
+<span style="color: #e7c547;">kind</span>: Role
+<span style="color: #e7c547;">apiVersion</span>: rbac.authorization.k8s.io/v1
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">k8s-app</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+<span style="color: #e7c547;">rules</span>:
+  <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Allow Dashboard to get, update and delete Dashboard exclusive secrets.</span>
+  - <span style="color: #e7c547;">apiGroups</span>: [<span style="color: #70c0b1;">""</span>]
+    <span style="color: #e7c547;">resources</span>: [<span style="color: #70c0b1;">"secrets"</span>]
+    <span style="color: #e7c547;">resourceNames</span>: [<span style="color: #70c0b1;">"kubernetes-dashboard-key-holder"</span>, <span style="color: #70c0b1;">"kubernetes-dashboard-certs"</span>, <span style="color: #70c0b1;">"kubernetes-dashboard-csrf"</span>]
+    <span style="color: #e7c547;">verbs</span>: [<span style="color: #70c0b1;">"get"</span>, <span style="color: #70c0b1;">"update"</span>, <span style="color: #70c0b1;">"delete"</span>]
+    <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Allow Dashboard to get and update 'kubernetes-dashboard-settings' config map.</span>
+  - <span style="color: #e7c547;">apiGroups</span>: [<span style="color: #70c0b1;">""</span>]
+    <span style="color: #e7c547;">resources</span>: [<span style="color: #70c0b1;">"configmaps"</span>]
+    <span style="color: #e7c547;">resourceNames</span>: [<span style="color: #70c0b1;">"kubernetes-dashboard-settings"</span>]
+    <span style="color: #e7c547;">verbs</span>: [<span style="color: #70c0b1;">"get"</span>, <span style="color: #70c0b1;">"update"</span>]
+    <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Allow Dashboard to get metrics.</span>
+  - <span style="color: #e7c547;">apiGroups</span>: [<span style="color: #70c0b1;">""</span>]
+    <span style="color: #e7c547;">resources</span>: [<span style="color: #70c0b1;">"services"</span>]
+    <span style="color: #e7c547;">resourceNames</span>: [<span style="color: #70c0b1;">"heapster"</span>, <span style="color: #70c0b1;">"dashboard-metrics-scraper"</span>]
+    <span style="color: #e7c547;">verbs</span>: [<span style="color: #70c0b1;">"proxy"</span>]
+  - <span style="color: #e7c547;">apiGroups</span>: [<span style="color: #70c0b1;">""</span>]
+    <span style="color: #e7c547;">resources</span>: [<span style="color: #70c0b1;">"services/proxy"</span>]
+    <span style="color: #e7c547;">resourceNames</span>: [<span style="color: #70c0b1;">"heapster"</span>, <span style="color: #70c0b1;">"http:heapster:"</span>, <span style="color: #70c0b1;">"https:heapster:"</span>, <span style="color: #70c0b1;">"dashboard-metrics-scraper"</span>, <span style="color: #70c0b1;">"http:dashboard-metrics-scraper"</span>]
+    <span style="color: #e7c547;">verbs</span>: [<span style="color: #70c0b1;">"get"</span>]
+
+<span style="color: #969896; font-style: italic;">---</span>
+
+<span style="color: #e7c547;">kind</span>: ClusterRole
+<span style="color: #e7c547;">apiVersion</span>: rbac.authorization.k8s.io/v1
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">k8s-app</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard
+<span style="color: #e7c547;">rules</span>:
+  <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Allow Metrics Scraper to get metrics from the Metrics server</span>
+  - <span style="color: #e7c547;">apiGroups</span>: [<span style="color: #70c0b1;">"metrics.k8s.io"</span>]
+    <span style="color: #e7c547;">resources</span>: [<span style="color: #70c0b1;">"pods"</span>, <span style="color: #70c0b1;">"nodes"</span>]
+    <span style="color: #e7c547;">verbs</span>: [<span style="color: #70c0b1;">"get"</span>, <span style="color: #70c0b1;">"list"</span>, <span style="color: #70c0b1;">"watch"</span>]
+
+<span style="color: #969896; font-style: italic;">---</span>
+
+<span style="color: #e7c547;">apiVersion</span>: rbac.authorization.k8s.io/v1
+<span style="color: #e7c547;">kind</span>: RoleBinding
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">k8s-app</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+<span style="color: #e7c547;">roleRef</span>:
+  <span style="color: #e7c547;">apiGroup</span>: rbac.authorization.k8s.io
+  <span style="color: #e7c547;">kind</span>: Role
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard
+<span style="color: #e7c547;">subjects</span>:
+  - <span style="color: #e7c547;">kind</span>: ServiceAccount
+    <span style="color: #e7c547;">name</span>: kubernetes-dashboard
+    <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+
+<span style="color: #969896; font-style: italic;">---</span>
+
+<span style="color: #e7c547;">apiVersion</span>: rbac.authorization.k8s.io/v1
+<span style="color: #e7c547;">kind</span>: ClusterRoleBinding
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard
+<span style="color: #e7c547;">roleRef</span>:
+  <span style="color: #e7c547;">apiGroup</span>: rbac.authorization.k8s.io
+  <span style="color: #e7c547;">kind</span>: ClusterRole
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard
+<span style="color: #e7c547;">subjects</span>:
+  - <span style="color: #e7c547;">kind</span>: ServiceAccount
+    <span style="color: #e7c547;">name</span>: kubernetes-dashboard
+    <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+
+<span style="color: #969896; font-style: italic;">---</span>
+
+<span style="color: #e7c547;">kind</span>: Deployment
+<span style="color: #e7c547;">apiVersion</span>: apps/v1
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">k8s-app</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">name</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+<span style="color: #e7c547;">spec</span>:
+  <span style="color: #e7c547;">replicas</span>: 1
+  <span style="color: #e7c547;">revisionHistoryLimit</span>: 10
+  <span style="color: #e7c547;">selector</span>:
+    <span style="color: #e7c547;">matchLabels</span>:
+      <span style="color: #e7c547;">k8s-app</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">template</span>:
+    <span style="color: #e7c547;">metadata</span>:
+      <span style="color: #e7c547;">labels</span>:
+        <span style="color: #e7c547;">k8s-app</span>: kubernetes-dashboard
+    <span style="color: #e7c547;">spec</span>:
+      <span style="color: #e7c547;">securityContext</span>:
+        <span style="color: #e7c547;">seccompProfile</span>:
+          <span style="color: #e7c547;">type</span>: RuntimeDefault
+      <span style="color: #e7c547;">containers</span>:
+        - <span style="color: #e7c547;">name</span>: kubernetes-dashboard
+          <span style="color: #e7c547;">image</span>: kubernetesui/dashboard:v2.7.0
+          <span style="color: #e7c547;">imagePullPolicy</span>: Always
+          <span style="color: #e7c547;">ports</span>:
+            - <span style="color: #e7c547;">containerPort</span>: 8443
+              <span style="color: #e7c547;">protocol</span>: TCP
+          <span style="color: #e7c547;">args</span>:
+            - --auto-generate-certificates
+            - --namespace=kubernetes-dashboard
+            <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Uncomment the following line to manually specify Kubernetes API server Host</span>
+            <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">If not specified, Dashboard will attempt to auto discover the API server and connect</span>
+            <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">to it. Uncomment only if the default does not work.</span>
+            <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">- --apiserver-host=http://my-address:port</span>
+          <span style="color: #e7c547;">volumeMounts</span>:
+            - <span style="color: #e7c547;">name</span>: kubernetes-dashboard-certs
+              <span style="color: #e7c547;">mountPath</span>: /certs
+              <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Create on-disk volume to store exec logs</span>
+            - <span style="color: #e7c547;">mountPath</span>: /tmp
+              <span style="color: #e7c547;">name</span>: tmp-volume
+          <span style="color: #e7c547;">livenessProbe</span>:
+            <span style="color: #e7c547;">httpGet</span>:
+              <span style="color: #e7c547;">scheme</span>: HTTPS
+              <span style="color: #e7c547;">path</span>: /
+              <span style="color: #e7c547;">port</span>: 8443
+            <span style="color: #e7c547;">initialDelaySeconds</span>: 30
+            <span style="color: #e7c547;">timeoutSeconds</span>: 30
+          <span style="color: #e7c547;">securityContext</span>:
+            <span style="color: #e7c547;">allowPrivilegeEscalation</span>: <span style="color: #7aa6da;">false</span>
+            <span style="color: #e7c547;">readOnlyRootFilesystem</span>: <span style="color: #7aa6da;">true</span>
+            <span style="color: #e7c547;">runAsUser</span>: 1001
+            <span style="color: #e7c547;">runAsGroup</span>: 2001
+      <span style="color: #e7c547;">volumes</span>:
+        - <span style="color: #e7c547;">name</span>: kubernetes-dashboard-certs
+          <span style="color: #e7c547;">secret</span>:
+            <span style="color: #e7c547;">secretName</span>: kubernetes-dashboard-certs
+        - <span style="color: #e7c547;">name</span>: tmp-volume
+          <span style="color: #e7c547;">emptyDir</span>: {<span style="color: #e7c547;">}</span>
+<span style="color: #e7c547;">      serviceAccountName</span>: kubernetes-dashboard
+      <span style="color: #e7c547;">nodeSelector</span>:
+        <span style="color: #70c0b1;">"kubernetes.io/os"</span>: linux
+      <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Comment the following tolerations if Dashboard must not be deployed on master</span>
+      <span style="color: #e7c547;">tolerations</span>:
+        - <span style="color: #e7c547;">key</span>: node-role.kubernetes.io/master
+          <span style="color: #e7c547;">effect</span>: NoSchedule
+
+<span style="color: #969896; font-style: italic;">---</span>
+
+<span style="color: #e7c547;">kind</span>: Service
+<span style="color: #e7c547;">apiVersion</span>: v1
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">k8s-app</span>: dashboard-metrics-scraper
+  <span style="color: #e7c547;">name</span>: dashboard-metrics-scraper
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+<span style="color: #e7c547;">spec</span>:
+  <span style="color: #e7c547;">ports</span>:
+    - <span style="color: #e7c547;">port</span>: 8000
+      <span style="color: #e7c547;">targetPort</span>: 8000
+  <span style="color: #e7c547;">selector</span>:
+    <span style="color: #e7c547;">k8s-app</span>: dashboard-metrics-scraper
+
+<span style="color: #969896; font-style: italic;">---</span>
+
+<span style="color: #e7c547;">kind</span>: Deployment
+<span style="color: #e7c547;">apiVersion</span>: apps/v1
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">labels</span>:
+    <span style="color: #e7c547;">k8s-app</span>: dashboard-metrics-scraper
+  <span style="color: #e7c547;">name</span>: dashboard-metrics-scraper
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+<span style="color: #e7c547;">spec</span>:
+  <span style="color: #e7c547;">replicas</span>: 1
+  <span style="color: #e7c547;">revisionHistoryLimit</span>: 10
+  <span style="color: #e7c547;">selector</span>:
+    <span style="color: #e7c547;">matchLabels</span>:
+      <span style="color: #e7c547;">k8s-app</span>: dashboard-metrics-scraper
+  <span style="color: #e7c547;">template</span>:
+    <span style="color: #e7c547;">metadata</span>:
+      <span style="color: #e7c547;">labels</span>:
+        <span style="color: #e7c547;">k8s-app</span>: dashboard-metrics-scraper
+    <span style="color: #e7c547;">spec</span>:
+      <span style="color: #e7c547;">securityContext</span>:
+        <span style="color: #e7c547;">seccompProfile</span>:
+          <span style="color: #e7c547;">type</span>: RuntimeDefault
+      <span style="color: #e7c547;">containers</span>:
+        - <span style="color: #e7c547;">name</span>: dashboard-metrics-scraper
+          <span style="color: #e7c547;">image</span>: kubernetesui/metrics-scraper:v1.0.8
+          <span style="color: #e7c547;">ports</span>:
+            - <span style="color: #e7c547;">containerPort</span>: 8000
+              <span style="color: #e7c547;">protocol</span>: TCP
+          <span style="color: #e7c547;">livenessProbe</span>:
+            <span style="color: #e7c547;">httpGet</span>:
+              <span style="color: #e7c547;">scheme</span>: HTTP
+              <span style="color: #e7c547;">path</span>: /
+              <span style="color: #e7c547;">port</span>: 8000
+            <span style="color: #e7c547;">initialDelaySeconds</span>: 30
+            <span style="color: #e7c547;">timeoutSeconds</span>: 30
+          <span style="color: #e7c547;">volumeMounts</span>:
+          - <span style="color: #e7c547;">mountPath</span>: /tmp
+            <span style="color: #e7c547;">name</span>: tmp-volume
+          <span style="color: #e7c547;">securityContext</span>:
+            <span style="color: #e7c547;">allowPrivilegeEscalation</span>: <span style="color: #7aa6da;">false</span>
+            <span style="color: #e7c547;">readOnlyRootFilesystem</span>: <span style="color: #7aa6da;">true</span>
+            <span style="color: #e7c547;">runAsUser</span>: 1001
+            <span style="color: #e7c547;">runAsGroup</span>: 2001
+      <span style="color: #e7c547;">serviceAccountName</span>: kubernetes-dashboard
+      <span style="color: #e7c547;">nodeSelector</span>:
+        <span style="color: #70c0b1;">"kubernetes.io/os"</span>: linux
+      <span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">Comment the following tolerations if Dashboard must not be deployed on master</span>
+      <span style="color: #e7c547;">tolerations</span>:
+        - <span style="color: #e7c547;">key</span>: node-role.kubernetes.io/master
+          <span style="color: #e7c547;">effect</span>: NoSchedule
+      <span style="color: #e7c547;">volumes</span>:
+        - <span style="color: #e7c547;">name</span>: tmp-volume
+          <span style="color: #e7c547;">emptyDir</span>: {}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org009005e" class="outline-3">
+<h3 id="org009005e">访问dashboard</h3>
+<div class="outline-text-3" id="text-org009005e">
+<p>
+通过以下的 yaml 创建一个admin-user，在将admin-user 绑定到cluser-admin 角色上
+</p>
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #e7c547;">apiVersion</span>: v1
+<span style="color: #e7c547;">kind</span>: ServiceAccount
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">name</span>: admin-user
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+<span style="color: #969896; font-style: italic;">---</span>
+<span style="color: #e7c547;">apiVersion</span>: rbac.authorization.k8s.io/v1
+<span style="color: #e7c547;">kind</span>: ClusterRoleBinding
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">name</span>: admin-user
+<span style="color: #e7c547;">roleRef</span>:
+  <span style="color: #e7c547;">apiGroup</span>: rbac.authorization.k8s.io
+  <span style="color: #e7c547;">kind</span>: ClusterRole
+  <span style="color: #e7c547;">name</span>: cluster-admin
+<span style="color: #e7c547;">subjects</span>:
+- <span style="color: #e7c547;">kind</span>: ServiceAccount
+  <span style="color: #e7c547;">name</span>: admin-user
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+</pre>
+</div>
+</div>
+
+<ul class="org-ul">
+<li><a id="org49aa0c8"></a>浏览器访问dashboard<br />
+<div class="outline-text-4" id="text-org49aa0c8">
+<ol class="org-ol">
+<li>通过proxy进行访问</li>
+<li>通过service进行服务的暴露，并访问dashboard</li>
+</ol>
+</div>
+<ul class="org-ul">
+<li><a id="org791fa56"></a>获取 token<br />
+<div class="outline-text-5" id="text-org791fa56">
+<ol class="org-ol">
+<li>临时token
+<code>kubectl -n kubernetes-dashboard create token admin-user</code></li>
+<li><p>
+使用yaml创建token
+</p>
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #e7c547;">apiVersion</span>: v1
+<span style="color: #e7c547;">kind</span>: Secret
+<span style="color: #e7c547;">metadata</span>:
+  <span style="color: #e7c547;">name</span>: admin-user
+  <span style="color: #e7c547;">namespace</span>: kubernetes-dashboard
+  <span style="color: #e7c547;">annotations</span>:
+    <span style="color: #e7c547;">kubernetes.io/service-account.name</span>: <span style="color: #70c0b1;">"admin-user"</span>   
+<span style="color: #e7c547;">type</span>: kubernetes.io/service-account-token  
+</pre>
+</div>
+<p>
+获取token <code>kubectl get secret admin-user -n kubernetes-dashboard -o jsonpath={".data.token"} | base64 -d</code>
+</p></li>
+</ol>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org264e740" class="outline-2">
+<h2 id="org264e740">自动化在virtualbox中安装k8s</h2>
+<div class="outline-text-2" id="text-org264e740">
+<ol class="org-ol">
+<li>定义节点</li>
+<li>连接节点</li>
+<li>初始化节点
+<ol class="org-ol">
+<li>安装相关的包，containerd k8s相关的包</li>
+<li>修改相关的配置</li>
+</ol></li>
+<li>加入controller plane</li>
+<li>加入 node节点</li>
+<li>安装dashbord</li>
+<li>完成安装</li>
+</ol>
+</div>
+</div>
+<div id="outline-container-orge460adc" class="outline-2">
+<h2 id="orge460adc">Q&amp;A 问题</h2>
+<div class="outline-text-2" id="text-orge460adc">
+</div>
+<div id="outline-container-org2eebb12" class="outline-3">
+<h3 id="org2eebb12">虚拟机问题</h3>
+<div class="outline-text-3" id="text-org2eebb12">
+<ol class="org-ol">
+<li>修改虚拟机网络</li>
+<li>安装guest iso内容</li>
+<li>增加hostonly 网络</li>
+<li>刷新mac地址</li>
+<li>查询mac地址</li>
+</ol>
+</div>
+</div>
+<div id="outline-container-org039c100" class="outline-3">
+<h3 id="org039c100">virtualbox 启动虚拟机</h3>
+<div class="outline-text-3" id="text-org039c100">
+<p>
+vboxmanage startvm Fedora-Cloud-Base-Vagrant-37-1.7.x86<sub>64.Node1</sub> &#x2013;type headless
+</p>
+</div>
+</div>
+<div id="outline-container-org5316975" class="outline-3">
+<h3 id="org5316975">virtualbox 端口转发</h3>
+<div class="outline-text-3" id="text-org5316975">
+<p>
+vboxmanage natnetwork modify &#x2013;netname NatNetwork &#x2013;port-forward-4 "kubectl:tcp:[]:6443:[10.0.2.4]:6443"
+</p>
+<ul class="org-ul">
+<li>解释"kubectl:tcp:[]:6443:[10.0.2.4]:6443"</li>
+<li>规则名 协议 运行virtualbox的主机ip 主机端口，虚拟机ip，虚拟机端口</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgef1930e" class="outline-3">
+<h3 id="orgef1930e">coredns 失败</h3>
+<div class="outline-text-3" id="text-orgef1930e">
+<p>
+<a href="https://kubernetes.io/zh-cn/docs/tasks/administer-cluster/dns-debugging-resolution/">调试dns问题 （官网）</a>
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">enable CoreDNS logging if not found</span>
+kubectl get cm -n kube-system coredns -o=json | grep -q log || kubectl get cm -n kube-system coredns -o=json | jq <span style="color: #70c0b1;">'del(.metadata.resourceVersion,.metadata.uid,.metadata.selfLink,.metadata.creationTimestamp,.metadata.annotations,.metadata.generation,.metadata.ownerReferences,.status)'</span> | sed <span style="color: #70c0b1;">'s#\.:53 {#\.:53 {\\n    log#'</span> | kubectl replace -f -
+
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">restart all CoreDNS pods</span>
+kubectl get pod -n kube-system -l k8s-app=kube-dns --no-headers | awk <span style="color: #70c0b1;">'{print $1}'</span> | xargs -I<span style="color: #eaeaea;">{}</span> kubectl delete pod -n kube-system <span style="color: #eaeaea;">{}</span>
+
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">wait to be available again</span>
+kubectl wait deployment -n kube-system coredns --for <span style="color: #e7c547;">condition</span>=<span style="color: #e7c547;">Available</span>=True --timeout=90s
+
+<span style="color: #969896; font-style: italic;"># </span><span style="color: #969896; font-style: italic;">tail CoreDNS logs</span>
+kubectl logs deployment/coredns -n kube-system -f
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgffedefc" class="outline-3">
+<h3 id="orgffedefc">flannel 无法init</h3>
+<div class="outline-text-3" id="text-orgffedefc">
+<p>
+dns问题，还未定位清楚
+</p>
+</div>
+</div>
+<div id="outline-container-orgbce4a57" class="outline-3">
+<h3 id="orgbce4a57">/run/flannel/subnet.env 不存在</h3>
+<div class="outline-text-3" id="text-orgbce4a57">
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #e7c547;">FLANNEL_NETWORK</span>=10.244.0.0/16
+<span style="color: #e7c547;">FLANNEL_SUBNET</span>=10.244.0.1/24
+<span style="color: #e7c547;">FLANNEL_MTU</span>=1500
+<span style="color: #e7c547;">FLANNEL_IPMASQ</span>=true
+FLANNEL_IPV6_SUBNET
+FLANNEL_IPV6_NETWORK
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgb9237c5" class="outline-3">
+<h3 id="orgb9237c5">crictl runtime-endpoint 冲突</h3>
+<div class="outline-text-3" id="text-orgb9237c5">
+<p>
+Q：
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #eaeaea;">[</span>root@localhost containerd<span style="color: #eaeaea;">]</span># crictl images
+WARN<span style="color: #eaeaea;">[</span>0000<span style="color: #eaeaea;">]</span> image connect using default endpoints: <span style="color: #eaeaea;">[</span>unix:///var/run/dockershim.sock unix:///run/containerd/containerd.sock unix:///run/crio/crio.sock unix:///var/run/cri-dockerd.sock<span style="color: #eaeaea;">]</span>. As the default settings are now deprecated, you should set the endpoint instead. 
+ERRO<span style="color: #eaeaea;">[</span>0000<span style="color: #eaeaea;">]</span> unable to determine image API version: rpc error: <span style="color: #e7c547;">code</span> = Unavailable <span style="color: #e7c547;">desc</span> = connection error: <span style="color: #e7c547;">desc</span> = <span style="color: #70c0b1;">"transport: Error while dialing dial unix /var/run/dockershim.sock: connect: no such file or directory"</span> 
+IMAGE               TAG                 IMAGE ID            SIZE
+<span style="color: #eaeaea;">[</span>root@localhost containerd<span style="color: #eaeaea;">]</span># crictl config runtime-endpoint unix:///var/run/containerd/containerd.sock
+</pre>
+</div>
+
+<p>
+crictl 运行时连接，默认优先查找 <code>/var/run/dockershim.sock</code> ，所以只需进行配置即可 <code>unix:///var/run/containerd/containerd.sock</code>
+</p>
+
+<p>
+crictl 的具体配置可以查看 <code>/etc/crictl.yml</code>
+</p>
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #e7c547;">runtime-endpoint</span>: unix:///var/run/containerd/containerd.sock
+<span style="color: #e7c547;">image-endpoint</span>: unix:///var/run/containerd/containerd.sock
+<span style="color: #e7c547;">timeout</span>: 10
+<span style="color: #e7c547;">debug</span>: <span style="color: #7aa6da;">false</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge3fdeeb" class="outline-3">
+<h3 id="orge3fdeeb">containerd cri 无法使用</h3>
+<div class="outline-text-3" id="text-orge3fdeeb">
+<p>
+Q：错误如下
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #eaeaea;">[</span>vagrant@localhost yum.repos.d<span style="color: #eaeaea;">]</span>$ crictl image
+WARN<span style="color: #eaeaea;">[</span>0000<span style="color: #eaeaea;">]</span> image connect using default endpoints: <span style="color: #eaeaea;">[</span>unix:///var/run/dockershim.sock unix:///run/containerd/containerd.sock unix:///run/crio/crio.sock unix:///var/run/cri-dockerd.sock<span style="color: #eaeaea;">]</span>. As the default settings are now
+ deprecated, you should set the endpoint instead.                                                                                                                                                                      ERRO<span style="color: #eaeaea;">[</span>0000<span style="color: #eaeaea;">]</span> unable to determine image API version: rpc error: <span style="color: #e7c547;">code</span> = Unavailable <span style="color: #e7c547;">desc</span> = connection error: <span style="color: #e7c547;">desc</span> = <span style="color: #70c0b1;">"transport: Error while dialing dial unix /var/run/dockershim.sock: connect: no such file or directory"</span>
+                                                                                                                                                                                                                       ERRO<span style="color: #eaeaea;">[</span>0000<span style="color: #eaeaea;">]</span> unable to determine image API version: rpc error: <span style="color: #e7c547;">code</span> = Unavailable <span style="color: #e7c547;">desc</span> = connection error: <span style="color: #e7c547;">desc</span> = <span style="color: #70c0b1;">"transport: Error while dialing dial unix /run/containerd/containerd.sock: connect: permission denied"</span> 
+ERRO<span style="color: #eaeaea;">[</span>0000<span style="color: #eaeaea;">]</span> unable to determine image API version: rpc error: <span style="color: #e7c547;">code</span> = Unavailable <span style="color: #e7c547;">desc</span> = connection error: <span style="color: #e7c547;">desc</span> = <span style="color: #70c0b1;">"transport: Error while dialing dial unix /run/crio/crio.sock: connect: no such file or directory"</span> 
+ERRO<span style="color: #eaeaea;">[</span>0000<span style="color: #eaeaea;">]</span> unable to determine image API version: rpc error: <span style="color: #e7c547;">code</span> = Unavailable <span style="color: #e7c547;">desc</span> = connection error: <span style="color: #e7c547;">desc</span> = <span style="color: #70c0b1;">"transport: Error while dialing dial unix /var/run/cri-dockerd.sock: connect: no such file or directory</span>
+<span style="color: #70c0b1;">"</span>
+FATA<span style="color: #eaeaea;">[</span>0000<span style="color: #eaeaea;">]</span> unable to determine image API version: rpc error: <span style="color: #e7c547;">code</span> = Unavailable <span style="color: #e7c547;">desc</span> = connection error: <span style="color: #e7c547;">desc</span> = <span style="color: #70c0b1;">"transport: Error while dialing dial unix /var/run/cri-dockerd.sock: connect: no such file or directory</span>
+<span style="color: #70c0b1;">"</span>
+</pre>
+</div>
+<p>
+原因： containerd 禁用了cri 插件
+<code>/etc/containerd/config.toml</code> 中有如下代码
+</p>
+<div class="org-src-container">
+<pre class="src src-toml"><span style="color: #e7c547;">disabled_plugins</span> = [<span style="color: #70c0b1;">"cri"</span>]
+</pre>
+</div>
+<p>
+只需注释即可（或者通过 <code>containerd config default &gt; /etc/containerd/config.toml</code> 进行覆盖）
+</p>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1" role="doc-backlink">1</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+<a href="https://www.virtualbox.org/">Download VirtualBox</a> 
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.2" class="footnum" href="#fnr.2" role="doc-backlink">2</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+<a href="https://alt.fedoraproject.org/en/cloud/">Download Fedora Cloud</a> 
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.3" class="footnum" href="#fnr.3" role="doc-backlink">3</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+<a href="https://mirrors.tuna.tsinghua.edu.cn">https://mirrors.tuna.tsinghua.edu.cn</a>
+</p></div></div>
+
+
+</div>
+</div>
